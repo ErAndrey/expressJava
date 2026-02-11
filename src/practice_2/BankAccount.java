@@ -12,17 +12,22 @@ public class BankAccount {
         this.owner = newOwner;
     }
 
-    public String getOwner() { return this.owner; }
-    public int getBalance() { return this.balance; }
+    public String getOwner() {
+        return this.owner;
+    }
 
-    public void deposit (int amount) {
-        if (amount > 0 ) {
+    public int getBalance() {
+        return this.balance;
+    }
+
+    public void deposit(int amount) {
+        if (amount > 0) {
             this.balance += amount;
             System.out.println("Начислено на счет: " + amount);
         }
     }
 
-    public void withdraw (int amount) {
+    public void withdraw(int amount) {
         if (amount > 0 && this.balance >= amount) {
             this.balance -= amount;
             System.out.println("Списано со счета: " + amount);
@@ -32,5 +37,4 @@ public class BankAccount {
     public void printBalance() {
         System.out.println("Ваш баланс : " + getBalance());
     }
-
 }

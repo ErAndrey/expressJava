@@ -4,7 +4,7 @@ public class Book {
     String title;
     String author;
 
-    public Book (String title, String author) {
+    public Book(String title, String author) {
         this.title = title;
         this.author = author;
     }
@@ -17,8 +17,13 @@ public class Book {
         this.author = author;
     }
 
-    public String getTitle() { return this.title; }
-    public String getAuthor() { return this.author; }
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getAuthor() {
+        return this.author;
+    }
 
     public void printInfo() {
         System.out.println("Название: " + title + ", Автор: " + author);

@@ -13,13 +13,23 @@ public class StudentGroup {
         }
     }
 
-    public String getGroupName() { return this.groupName; }
-    public int getStudentCount() { return this.studentCount; }
+    public String getGroupName() {
+        return this.groupName;
+    }
 
-    public void setGroupName(String newGroupName) { this.groupName = newGroupName; }
-    public void setStudentCount(int newStudentCount) { this.studentCount = newStudentCount; }
+    public int getStudentCount() {
+        return this.studentCount;
+    }
 
-    public void printInfo () {
+    public void setGroupName(String newGroupName) {
+        this.groupName = newGroupName;
+    }
+
+    public void setStudentCount(int newStudentCount) {
+        this.studentCount = newStudentCount;
+    }
+
+    public void printInfo() {
         System.out.println("Название группы: " + this.getGroupName() + "\nКоличество студентов: " + this.getStudentCount());
     }
 }

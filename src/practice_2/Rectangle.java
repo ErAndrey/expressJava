@@ -17,12 +17,11 @@ public class Rectangle {
         return this.height;
     }
 
-    public void setWidth (int newWidth) {
+    public void setWidth(int newWidth) {
         this.width = newWidth;
     }
 
     public int calculateArea() {
         return this.width * this.height;
     }
-
 }

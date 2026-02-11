@@ -4,7 +4,7 @@ public class Car {
     String brand;
     int year;
 
-    public Car (String brand, int year) {
+    public Car(String brand, int year) {
         this.brand = brand;
         this.year = year;
     }
@@ -28,5 +28,4 @@ public class Car {
     public void print() {
         System.out.println("Марка: " + this.brand + "\nГод выпуска: " + this.year);
     }
-
 }
