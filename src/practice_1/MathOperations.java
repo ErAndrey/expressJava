@@ -2,37 +2,6 @@ package practice_1;
 
 public class MathOperations {
 
-    public static void main (String[] args) {
-
-        System.out.println(add(1, 4));
-        System.out.println(subtract(2, 3));
-        System.out.println(multiply(3, 2));
-        System.out.println(divide(4, 1));
-
-        System.out.println(findMax(4, 1));
-
-        System.out.println(difference(4, 6));
-
-        System.out.println(squareArea(4));
-        System.out.println(squarePerimeter(5));
-
-        System.out.println(convertSecondsToMinutes(5));
-        System.out.println(convertSecondsToMinutes(120));
-
-        System.out.println(averageSpeed(120, 5));
-
-
-        System.out.println(findHypotenuse(3, 4));
-
-        System.out.println(circleCircumference(20));
-
-        System.out.println(calculatePercentage(100, 20));
-
-        System.out.println(celsiusToFahrenheit(38.0));
-        System.out.println(fahrenheitToCelsius(celsiusToFahrenheit(38.0)));
-
-    }
-
     public static int add(int x, int y) {
         return x + y;
     }
@@ -46,6 +15,9 @@ public class MathOperations {
     }
 
     public static double divide(int x, int y) {
+        if (y == 0) {
+            return 0.0; // специально, чтобы не менять сигнатуру
+        }
         return (double) x / y;
     }
 
@@ -65,24 +37,27 @@ public class MathOperations {
         return side * 4;
     }
 
-    public static float convertSecondsToMinutes(int seconds) {
-        return (float) seconds / 60;
+    public static double convertSecondsToMinutes(int seconds) {
+        return (double) seconds / 60;
     }
 
     public static double averageSpeed(double distance, double time) {
+        if (time == 0.0) {
+            return 0.0; // специально, чтобы не менять сигнатуру
+        }
         return distance / time;
     }
 
     public static double findHypotenuse(double a, double b) {
-        return Math.sqrt((a * a + b * b));
+        return Math.hypot(a, b);
     }
 
     public static double circleCircumference(double radius) {
         return Math.PI * 2 * radius;
     }
 
-    public static String calculatePercentage(double total, double part) {
-        return part / total * 100 + "%";
+    public static double calculatePercentage(double total, double part) {
+        return part / total * 100;
     }
 
     public static double celsiusToFahrenheit(double c) {
