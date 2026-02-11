@@ -28,5 +28,4 @@ public class University {
     public void printStudentInfo() {
         System.out.println("Имя: " + this.studentName + ", Id студента: " + this.studentId + ", Университет: " + universityName);
     }
-
 }

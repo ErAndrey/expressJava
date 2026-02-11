@@ -18,8 +18,7 @@ public class Company {
         this.employeeName = newName;
     }
 
-    public void printCompanyName () {
+    public void printCompanyName() {
         System.out.println(companyName);
     }
-
 }

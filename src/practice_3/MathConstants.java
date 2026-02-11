@@ -12,6 +12,7 @@ public class MathConstants {
     static double calculateCircleArea(double r) {
         return PI * r * r;
     }
+
     static double calculateCircumference(double r) {
         return 2 * PI * r;
     }

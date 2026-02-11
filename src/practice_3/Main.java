@@ -2,6 +2,7 @@ package practice_3;
 
 public class Main {
     public static void main(String[] args) {
+
         Company c = new Company(1, "S");
         Company s = new Company(1, "1");
 
@@ -53,5 +54,6 @@ public class Main {
         p1.printPersonInfo();
         p2.printPersonInfo();
         p3.printPersonInfo();
+
     }
 }

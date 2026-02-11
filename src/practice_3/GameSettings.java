@@ -31,6 +31,4 @@ public class GameSettings {
     public void printGameStatus() {
         System.out.println("Название: " + this.gameName + ", Количество игроков: " + this.currentPlayers + "/" + maxPlayers);
     }
-
-    //setMaxPlayers(int), метод addPlayer() — добавляет 1 игрока, если не превышен maxPlayers
 }
