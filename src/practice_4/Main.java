@@ -37,25 +37,25 @@ public class Main {
 
 
         //5. Определение размера скидки по возрасту
-        System.out.println(getDiscountForYears(17));
-        System.out.println(getDiscountForYears(54));
-        System.out.println(getDiscountForYears(69));
+        System.out.println(getDiscountForYears(scanner.nextInt()));
 
 
         //6. Оценка результата теста по баллам
-        System.out.println(getMarkFrom(90));
-        System.out.println(getMarkFrom(75));
-        System.out.println(getMarkFrom(60));
-        System.out.println(getMarkFrom(3));
+        System.out.println(getMarkFrom(scanner.nextInt()));
 
 
         //1. Вывод дня недели по номеру
-        System.out.println(scanner.nextInt());
+        getStringDayFromNumber(scanner.nextInt());
 
 
         //2. Стоимость билета по дню недели
         int z = scanner.nextInt();
-        System.out.println(getPriceOfTicketForADay(z));
+        int result = getPriceOfTicketForADay(z);
+        if (result == -1) {
+            System.out.println("Не можем узнать цену билета, введите номер дня от 1 до 7");
+        } else {
+            System.out.println(result);
+        }
 
 
         //3. Перевод числовых оценок в буквенные (A–F)
@@ -97,12 +97,12 @@ public class Main {
         //3. Таблица умножения для числа
         int o = scanner.nextInt();
         for (int i = 1; i <= 10; i++) {
-            System.out.println(n + " * " + i + " = " + i * o);
+            System.out.println(o + " * " + i + " = " + i * o);
         }
 
 
         //4. Проверка на простое число
-        System.out.println(isPrime(101));
+        System.out.println(isPrime(scanner.nextInt()));
 
 
         //5. Вывод чисел от 1 до 10
@@ -270,13 +270,13 @@ public class Main {
     public static void getStringDayFromNumber(int day) {
         String res = "Такого дня нет";
         switch (day) {
-            case 1 -> res = "Четверг";
-            case 2 -> res = "Пятница";
-            case 3 -> res = "Суббота";
-            case 4 -> res = "Воскресенье";
-            case 5 -> res = "Понедельник";
-            case 6 -> res = "Вторник";
-            case 7 -> res = "Среда";
+            case 1 -> res = "Понедельник";
+            case 2 -> res = "Вторник";
+            case 3 -> res = "Среда";
+            case 4 -> res = "Четверг";
+            case 5 -> res = "Пятница";
+            case 6 -> res = "Суббота";
+            case 7 -> res = "Воскресенье";
         }
 
         System.out.println(res);
@@ -287,6 +287,9 @@ public class Main {
         switch (day) {
             case 1, 2, 3, 4, 5 -> price = 300;
             case 6, 7 -> price = 450;
+            default -> {
+                return -1;
+            }
         }
         return price;
     }
@@ -311,6 +314,7 @@ public class Main {
             case "stop" -> System.out.println("stop");
             case "restart" -> System.out.println("restart");
             case "status" -> System.out.println("status");
+            default -> System.out.println("Неизвестная команда");
         }
 
     }
@@ -333,20 +337,20 @@ public class Main {
     public static boolean isPrime(int n) {
         n = Math.abs(n);
 
-        boolean isPrime = true;
+        if (n == 2) {
+            return true;
+        }
 
-        int x = n % 2 == 0 ? 1 : 0;
+        if (n <= 1 || n % 2 == 0) {
+            return false;
+        }
 
-        for (int i = 4; i <= n; i++) {
+        for (int i = 3; i <= Math.sqrt(n); i++) {
             if (n % i == 0)
-                x++;
+                return false;
         }
 
-        if (x >= 2) {
-            isPrime = false;
-        }
-
-        return isPrime;
+        return true;
     }
 
     public static void printEvenNumbers(int last) {
