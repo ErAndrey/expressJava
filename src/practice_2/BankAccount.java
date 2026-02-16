@@ -2,7 +2,7 @@ package practice_2;
 
 public class BankAccount {
     String owner;
-    int balance;
+    double balance;
 
     public BankAccount(String owner) {
         this.owner = owner;
@@ -16,21 +16,29 @@ public class BankAccount {
         return this.owner;
     }
 
-    public int getBalance() {
+    public double getBalance() {
         return this.balance;
     }
 
-    public void deposit(int amount) {
-        if (amount > 0) {
-            this.balance += amount;
-            System.out.println("Начислено на счет: " + amount);
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            System.out.println("Ошибка: Укажите сумму больше 0");
+            return;
         }
+        this.balance += amount;
+        System.out.println("Начислено на счет: " + amount);
     }
 
-    public void withdraw(int amount) {
-        if (amount > 0 && this.balance >= amount) {
+    public void withdraw(double amount) {
+        if (amount <= 0) {
+            System.out.println("Ошибка: Укажите сумму больше 0");
+            return;
+        }
+        if (this.balance >= amount) {
             this.balance -= amount;
             System.out.println("Списано со счета: " + amount);
+        } else {
+            System.out.println("Ошибка: Недостаточно средств");
         }
     }
 

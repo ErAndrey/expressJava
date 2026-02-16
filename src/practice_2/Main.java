@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
 
         Car car = new Car("BMW", 2026);
-        car.setBrand("Y");
+        car.setYear(2027);
         car.print();
 
         Rectangle rectangle = new Rectangle(54, 32);
@@ -30,8 +30,8 @@ public class Main {
         studentGroup.setStudentCount(20);
         studentGroup.printInfo();
 
-        Circle c = new Circle(20);
-        c.setRadius(11);
+        Circle c = new Circle(20.0);
+        c.setRadius(11.0);
         System.out.println(c.calculateCircumference());
         System.out.println(c.calculateArea());
 
@@ -43,7 +43,7 @@ public class Main {
 
         System.out.println(cocaCola.getPrice());
         cocaCola.setPrice(105.0);
-        cocaCola.applyDiscount(20);
+        cocaCola.applyDiscount(12.5);
         System.out.println(cocaCola.getPrice());
 
         Laptop l = new Laptop("Zzz", 113);

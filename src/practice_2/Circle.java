@@ -1,17 +1,17 @@
 package practice_2;
 
 public class Circle {
-    int radius;
+    double radius;
 
-    public Circle(int radius) {
+    public Circle(double radius) {
         this.radius = radius;
     }
 
-    public void setRadius(int newRadius) {
+    public void setRadius(double newRadius) {
         this.radius = newRadius;
     }
 
-    public int getRadius() {
+    public double getRadius() {
         return this.radius;
     }
 
