@@ -15,7 +15,11 @@ public class Manager {
         if (this.museum != null) {
             if (this.museum.getExhibit() != null) {
                 this.museum.getExhibit().getInfo();
+            } else {
+                System.out.println("В музее нет экспаната");
             }
+        } else {
+            System.out.println("Музей не задан");
         }
     }
 }

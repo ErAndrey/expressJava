@@ -6,7 +6,7 @@ import practice_5.garden.*;
 import practice_5.museum.*;
 import practice_5.park.*;
 import practice_5.pet.*;
-import practice_5.restaraunt.*;
+import practice_5.restaurant.*;
 import practice_5.zoo.*;
 
 public class Main {
@@ -43,15 +43,15 @@ public class Main {
         //3. Управление рестораном
 
         Menu menu = new Menu();
-        Chief chief = new Chief();
+        Chef chef = new Chef();
         Drink water = new Drink("Освежающая", 50.0, 1);
         Hot soup = new Hot("Том ям", 350.5, 45);
 
-        chief.checkDish(water);
-        chief.checkDish(soup);
+        chef.checkDish(water);
+        chef.checkDish(soup);
 
-        chief.addDishToMenu(menu, water);
-        chief.addDishToMenu(menu, soup);
+        chef.addDishToMenu(menu, water);
+        chef.addDishToMenu(menu, soup);
 
         menu.readMenu();
 
@@ -97,12 +97,12 @@ public class Main {
 
         botanic.addPlant(orchid);
         botanic.setGarden(garden);
-        botanic.carePlat();
+        botanic.carePlant();
 
         botanic.addPlant(orchid);
-        botanic.carePlat();
+        botanic.carePlant();
         botanic.addPlant(cactus);
-        botanic.carePlat();
+        botanic.carePlant();
 
         //7. Парк развлечений
 

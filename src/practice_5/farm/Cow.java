@@ -2,7 +2,7 @@ package practice_5.farm;
 
 public class Cow extends Animal {
     @Override
-    public void get() {
+    public void getResource() {
         System.out.println("Я дам вам молоко");
     }
 

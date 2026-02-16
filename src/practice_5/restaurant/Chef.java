@@ -1,6 +1,6 @@
-package practice_5.restaraunt;
+package practice_5.restaurant;
 
-public class Chief {
+public class Chef {
     public void addDishToMenu(Menu menu, Dish dish) {
         menu.addDish(dish);
     }

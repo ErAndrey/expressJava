@@ -1,4 +1,4 @@
-package practice_5.restaraunt;
+package practice_5.restaurant;
 
 public class Drink extends Dish {
     private double volume;

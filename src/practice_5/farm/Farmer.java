@@ -6,18 +6,23 @@ public class Farmer {
     }
 
     public void feed(Farm farm) {
-        if (farm.animal != null) {
-            farm.animal.eat();
-        } else {
-            System.out.println("На ферме нет животного");
+        if (isAnimalPresentOnFarm(farm)) {
+            farm.getAnimal().eat();
         }
     }
 
     public void getResources(Farm farm) {
-        if (farm.animal != null) {
-            farm.animal.get();
-        } else {
-            System.out.println("На ферме нет животного");
+        if (isAnimalPresentOnFarm(farm)) {
+            farm.getAnimal().getResource();
         }
+
+    }
+
+    public boolean isAnimalPresentOnFarm(Farm farm) {
+        if (farm.getAnimal() == null) {
+            System.out.println("На ферме нет животного");
+            return false;
+        }
+        return true;
     }
 }

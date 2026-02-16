@@ -1,9 +1,13 @@
 package practice_5.farm;
 
 public class Farm {
-    Animal animal;
+    private Animal animal;
 
     public void setAnimal(Animal animal) {
         this.animal = animal;
+    }
+
+    public Animal getAnimal() {
+        return this.animal;
     }
 }

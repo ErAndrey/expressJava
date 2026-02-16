@@ -2,7 +2,7 @@ package practice_5.farm;
 
 public class Chicken extends Animal {
     @Override
-    public void get() {
+    public void getResource() {
         System.out.println("Я снесу вам яйца");
     }
 

@@ -15,7 +15,7 @@ public class Botanic {
         }
     }
 
-    public void carePlat() {
+    public void carePlant() {
         if (this.garden != null) {
             if (this.garden.getPlant() != null) {
                 this.garden.getPlant().care();

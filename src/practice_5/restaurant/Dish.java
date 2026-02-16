@@ -1,4 +1,4 @@
-package practice_5.restaraunt;
+package practice_5.restaurant;
 
 public abstract class Dish {
     private String description;

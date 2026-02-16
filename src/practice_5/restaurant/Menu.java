@@ -1,4 +1,4 @@
-package practice_5.restaraunt;
+package practice_5.restaurant;
 
 import java.util.ArrayList;
 import java.util.List;
