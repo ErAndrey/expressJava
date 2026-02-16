@@ -4,12 +4,12 @@ public class Main {
     public static void main(String[] args) {
 
         Company c = new Company(1, "S");
-        Company s = new Company(1, "1");
+        Company s = new Company(2, "1");
+
+        // c.employeeId = 3; - проверка final
 
         Company.companyName = "z";
-
-        c.printCompanyName();
-        s.printCompanyName();
+        Company.printCompanyName();
 
         double r = 14.0;
 
