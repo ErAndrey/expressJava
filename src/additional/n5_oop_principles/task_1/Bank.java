@@ -4,8 +4,7 @@ import java.util.*;
 
 public final class Bank implements Transaction {
     private final static char CURRENCY = '₽';
-
-    private final Scanner scanner = new Scanner(System.in);
+    private final static Scanner scanner = new Scanner(System.in);
 
     private final String name;
     private final Set<Account> accounts;
@@ -73,12 +72,17 @@ public final class Bank implements Transaction {
 
     @Override
     public boolean deposit(double amount) {
+        if (amount > 100 || amount < 1) {
+            System.out.println("Укажите кешбек в %, от 1 до 100");
+            return false;
+        }
+
         double loseAmount = 0.0;
         int countAccount = 0;
         System.out.println("Начисление " + amount + "% кеш-бека");
 
         for (Account account : this.accounts) {
-            double cashBackAmount = account.getMonthsSpending() * (1 - amount / 100);
+            double cashBackAmount = account.getMonthsSpending() * amount / 100;
             if (account.deposit(cashBackAmount)) {
                 loseAmount += cashBackAmount;
                 countAccount++;
@@ -125,7 +129,7 @@ public final class Bank implements Transaction {
         if (countFullIncomeAccount + countPartlyIncomeAccount > 0) {
             System.out.println("Получено за обслуживание: " + totalIncomeAmount);
             System.out.println("Полностью оплатившие - " + countFullIncomeAccount + " счетов: " + fullIncomeAmount + CURRENCY);
-            System.out.println("Частично оплатившие - " + countPartlyIncomeAccount + " счетов: " + partlyIncomeAmount + CURRENCY + ", начислено долгов: " + debtIncomeAmount);
+            System.out.println("Частично оплатившие - " + countPartlyIncomeAccount + " счетов: " + partlyIncomeAmount + CURRENCY + ", начислено долгов: " + debtIncomeAmount + CURRENCY);
         } else {
             System.out.println("Банк не списывал за обслуживание");
         }
