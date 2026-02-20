@@ -4,8 +4,10 @@ import java.util.Objects;
 
 public final class Account implements Transaction {
     private final static char CURRENCY = '₽';
+
     private final String name;
     private String password;
+
     private double balance;
     private double debt;
     private double monthsSpending;
@@ -28,6 +30,15 @@ public final class Account implements Transaction {
 
     public double getMonthsSpending() {
         return this.monthsSpending;
+    }
+
+    public void updatePassword(String oldPassword, String newPassword) {
+        if (this.password.equals(oldPassword)) {
+            this.password = newPassword;
+            System.out.println("Пароль успешно изменен");
+            return;
+        }
+        System.out.println("Вы неверно указали старый пароль");
     }
 
     public void resetMonthsSpending() {
@@ -75,5 +86,4 @@ public final class Account implements Transaction {
     public int hashCode() {
         return Objects.hash(name);
     }
-
 }

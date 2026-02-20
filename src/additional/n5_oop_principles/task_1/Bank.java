@@ -3,11 +3,14 @@ package additional.n5_oop_principles.task_1;
 import java.util.*;
 
 public final class Bank implements Transaction {
-    Scanner scanner = new Scanner(System.in);
-    private double balance;
     private final static char CURRENCY = '₽';
+
+    private final Scanner scanner = new Scanner(System.in);
+
     private final String name;
     private final Set<Account> accounts;
+
+    private double balance;
 
     public Bank(String name) {
         this.name = name;
@@ -23,16 +26,8 @@ public final class Bank implements Transaction {
         return this.balance;
     }
 
-    private boolean isUniqueAccountName(String accountName) {
-        if (this.accounts.contains(new Account(accountName, null))) {
-            System.out.println("Такое имя аккаунта уже используется...");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean registerAccount(String accountName, String accountPassword) {
-        return this.accounts.add(new Account(accountName, accountPassword));
+    public void investment(double amount) {
+        this.balance += amount;
     }
 
     public void registerForm() {
@@ -42,7 +37,7 @@ public final class Bank implements Transaction {
         do {
             System.out.print("Придумайте имя: ");
             accountName = scanner.next();
-        } while (isUniqueAccountName(accountName));
+        } while (isNoUniqueAccountName(accountName));
 
         System.out.print("Укажите пароль: ");
         String accountPassword = scanner.next();
@@ -50,8 +45,20 @@ public final class Bank implements Transaction {
         if (registerAccount(accountName, accountPassword)) {
             System.out.println("Аккаунт \"" + accountName + "\" создан!");
         } else {
-            System.out.println("Что-то пошло не так, попробуйте снова");
+            System.out.println("Что-то пошло не так, попробуйте позже");
         }
+    }
+
+    private boolean isNoUniqueAccountName(String accountName) {
+        if (this.accounts.contains(new Account(accountName, null))) {
+            System.out.println("Такое имя аккаунта уже используется...");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean registerAccount(String accountName, String accountPassword) {
+        return this.accounts.add(new Account(accountName, accountPassword));
     }
 
     public Account login(String name, String password) {
@@ -60,8 +67,8 @@ public final class Bank implements Transaction {
             System.out.println("Авторизация успешна!");
             return account;
         }
-        System.out.println("Такого аккаунта нет, попробуйте снова");
-        return null;
+        System.out.println("Такого аккаунта нет, попробуйте позже");
+        return null; //toDo exception
     }
 
     @Override
