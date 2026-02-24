@@ -72,10 +72,14 @@ public final class Bank implements Transaction {
         String password = scanner.next();
 
         Account account = new Account(name, password);
-        if (this.accounts.contains(account)) {
-            System.out.println("Привет, " + account.getName() + "!");
-            return account;
+
+        for (Account a : this.accounts) {
+            if (a.equals(account)) {
+                System.out.println("Привет, " + account.getName() + "!");
+                return a;
+            }
         }
+
         System.out.println("Такого аккаунта нет, попробуйте позже");
         return null; //toDo exception
     }
@@ -92,7 +96,6 @@ public final class Bank implements Transaction {
         System.out.println("Начисление " + amount + "% кеш-бека");
 
         for (Account account : this.accounts) {
-            //System.out.println(account.toString()); //toDo bug - значения 0
             double cashBackAmount = account.getMonthsSpending() * amount / 100;
             if (account.deposit(cashBackAmount)) {
                 loseAmount += cashBackAmount;
@@ -120,7 +123,7 @@ public final class Bank implements Transaction {
         System.out.println("Снятие " + amount + CURRENCY + " за обслуживание");
 
         for (Account account : this.accounts) {
-            double accountBalance = account.getBalance(); //toDo bug - значения 0
+            double accountBalance = account.getBalance();
             if (accountBalance >= amount) {
                 account.withdraw(amount);
                 fullIncomeAmount += amount;

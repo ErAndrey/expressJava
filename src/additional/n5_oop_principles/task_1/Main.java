@@ -12,14 +12,19 @@ public class Main {
         danila.deposit(1000);
         danila.withdraw(500);
 
+        System.out.println("///");
+
         System.out.println(danila.getBalance());
         System.out.println(danila.getMonthsSpending());
+        amka.withdraw(150);
 
         System.out.println("///");
 
-        amka.withdraw(150);
+        System.out.println(danila.getBalance());
+        System.out.println(danila.getMonthsSpending());
+        amka.deposit(15);
 
-        //amka.deposit(15);
+        System.out.println("///");
 
         System.out.println(danila.getBalance());
         System.out.println(danila.getMonthsSpending());
