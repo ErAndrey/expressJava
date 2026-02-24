@@ -17,6 +17,10 @@ public final class Bank implements Transaction {
         this.accounts = new HashSet<>();
     }
 
+    public Set<Account> getAccounts() {
+        return this.accounts;
+    }
+
     public String getName() {
         return this.name;
     }
@@ -60,10 +64,16 @@ public final class Bank implements Transaction {
         return this.accounts.add(new Account(accountName, accountPassword));
     }
 
-    public Account login(String name, String password) {
+    public Account login() {
+        System.out.print("Введите имя: ");
+        String name = scanner.next();
+
+        System.out.print("Введите пароль: ");
+        String password = scanner.next();
+
         Account account = new Account(name, password);
         if (this.accounts.contains(account)) {
-            System.out.println("Авторизация успешна!");
+            System.out.println("Привет, " + account.getName() + "!");
             return account;
         }
         System.out.println("Такого аккаунта нет, попробуйте позже");
@@ -82,6 +92,7 @@ public final class Bank implements Transaction {
         System.out.println("Начисление " + amount + "% кеш-бека");
 
         for (Account account : this.accounts) {
+            //System.out.println(account.toString()); //toDo bug - значения 0
             double cashBackAmount = account.getMonthsSpending() * amount / 100;
             if (account.deposit(cashBackAmount)) {
                 loseAmount += cashBackAmount;
@@ -109,7 +120,7 @@ public final class Bank implements Transaction {
         System.out.println("Снятие " + amount + CURRENCY + " за обслуживание");
 
         for (Account account : this.accounts) {
-            double accountBalance = account.getBalance();
+            double accountBalance = account.getBalance(); //toDo bug - значения 0
             if (accountBalance >= amount) {
                 account.withdraw(amount);
                 fullIncomeAmount += amount;

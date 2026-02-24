@@ -69,8 +69,9 @@ public final class Account implements Transaction {
     public void withdraw(double amount) {
         if (this.balance >= amount) {
             this.balance -= amount;
-            System.out.println("Списано: " + amount + CURRENCY);
             this.monthsSpending += amount;
+            System.out.println("Списано: " + amount + CURRENCY);
+            return;
         }
         System.out.println("На счете недостаточно средств");
     }
@@ -79,11 +80,16 @@ public final class Account implements Transaction {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Account account = (Account) o;
-        return Objects.equals(name, account.name);
+        return Objects.equals(name, account.name) && Objects.equals(password, account.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name, password);
+    }
+
+    @Override
+    public String toString() {
+        return "Имя: " + this.name + ", Баланс: " + this.balance + ", Месячные траты: " + this.monthsSpending;
     }
 }
