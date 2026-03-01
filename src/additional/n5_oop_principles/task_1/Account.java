@@ -45,6 +45,10 @@ public final class Account implements Transaction {
         this.monthsSpending = 0.0;
     }
 
+    private void resetDebt() {
+        this.debt = 0.0;
+    }
+
     public void addDebt(double amount) {
         this.debt += amount;
     }
@@ -54,6 +58,7 @@ public final class Account implements Transaction {
         if (amount >= 1.0) {
             double amountWithDebt = amount - this.debt;
             if (amountWithDebt >= 0) {
+                resetDebt();
                 this.balance += amountWithDebt;
             } else {
                 this.debt -= amount;
