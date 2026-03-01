@@ -221,8 +221,10 @@ public class Main {
         addHistoryToHistoryMap("11", linkedHashMap3);
         addHistoryToHistoryMap("12", linkedHashMap3);
         addHistoryToHistoryMap("13", linkedHashMap3);
-        addHistoryToHistoryMap("11", linkedHashMap3);
-        addHistoryToHistoryMap("12", linkedHashMap3);
+        addHistoryToHistoryMap("14", linkedHashMap3);
+        addHistoryToHistoryMap("15", linkedHashMap3);
+        addHistoryToHistoryMap("16", linkedHashMap3);
+        addHistoryToHistoryMap("17", linkedHashMap3);
         System.out.println(linkedHashMap3);
 
         //1 Создайте TreeMap и добавьте 5 ключей (имена) и значений (баллы). Выведите отсортированные данные.
@@ -324,7 +326,8 @@ public class Main {
     public static void addHistoryToHistoryMap(String url, Map<Integer, String> history) {
         numberOfUserHistory++;
         if (history.size() >= 10) {
-            history.remove(numberOfUserHistory % 10);
+            Integer oldestKey = history.keySet().iterator().next();
+            history.remove(oldestKey);
         }
         history.put(numberOfUserHistory, url);
 
