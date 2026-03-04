@@ -1,10 +1,8 @@
 package practice_6;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
-    private static int numberOfUserHistory = 0;
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -12,7 +10,7 @@ public class Main {
         //1. Создайте ArrayList из 5 чисел. Добавьте ещё одно число в конец. Выведите весь список.
 
         List<Integer> list1 = new ArrayList<>(List.of(1, 2, 3, 4, 5));
-        list1.addLast(4);
+        list1.add(4);
         System.out.println(list1);
 
         //2. Напишите программу, которая выводит все чётные числа из ArrayList.
@@ -50,12 +48,7 @@ public class Main {
 
         //5 Создайте ArrayList из целых чисел. Напишите программу, которая находит и выводит максимальное число из списка.
 
-        AtomicInteger maxNumber = new AtomicInteger(Integer.MIN_VALUE);
-        list4.forEach(i -> {
-            if (i > maxNumber.get()) {
-                maxNumber.set(i);
-            }
-        });
+        int maxNumber = Collections.max(list4);
         System.out.println(maxNumber);
 
         //1 Создайте LinkedList и добавьте в него 5 строк. Выведите все элементы списка.
@@ -75,7 +68,7 @@ public class Main {
         linkedList2.add(2);
         linkedList2.add(3);
         System.out.println(linkedList2);
-        System.out.println(linkedList2.pop());
+        System.out.println(linkedList2.removeFirst());
         System.out.println(linkedList2);
 
         //3 Создайте LinkedList, содержащий несколько строк. Напишите программу, которая печатает первый и последний элементы списка.
@@ -147,7 +140,7 @@ public class Main {
 
         //1 Создайте TreeSet из 5 чисел и выведите его. Обратите внимание на порядок.
 
-        Set<Integer> treeSet = new TreeSet<>();
+        TreeSet<Integer> treeSet = new TreeSet<>();
         treeSet.add(13);
         treeSet.add(3);
         treeSet.add(155);
@@ -160,8 +153,8 @@ public class Main {
 
         int searchNearFor = 5;
 
-        System.out.println("Ближайшее минимальное к " + searchNearFor + " = " + getNearMin(searchNearFor, treeSet));
-        System.out.println("Ближайшее максимальное к " + searchNearFor + " = " + getNearMax(searchNearFor, treeSet));
+        System.out.println("Ближайшее минимальное к " + searchNearFor + " = " + treeSet.lower(searchNearFor));
+        System.out.println("Ближайшее максимальное к " + searchNearFor + " = " + treeSet.higher(searchNearFor));
 
         //1 Создайте HashMap<String, Integer>, добавьте 5 пар (имя – возраст) и выведите все записи.
 
@@ -206,26 +199,13 @@ public class Main {
 
         //3 Создайте LinkedHashMap, который хранит историю просмотров пользователя (максимум 10 элементов).
 
-        LinkedHashMap<Integer, String> linkedHashMap3 = new LinkedHashMap<>();
+        UserHistoryMap<Integer, String> historyMap = new UserHistoryMap<>(10);
 
-        addHistoryToHistoryMap("1", linkedHashMap3);
-        addHistoryToHistoryMap("2", linkedHashMap3);
-        addHistoryToHistoryMap("3", linkedHashMap3);
-        addHistoryToHistoryMap("4", linkedHashMap3);
-        addHistoryToHistoryMap("5", linkedHashMap3);
-        addHistoryToHistoryMap("6", linkedHashMap3);
-        addHistoryToHistoryMap("7", linkedHashMap3);
-        addHistoryToHistoryMap("8", linkedHashMap3);
-        addHistoryToHistoryMap("9", linkedHashMap3);
-        addHistoryToHistoryMap("10", linkedHashMap3);
-        addHistoryToHistoryMap("11", linkedHashMap3);
-        addHistoryToHistoryMap("12", linkedHashMap3);
-        addHistoryToHistoryMap("13", linkedHashMap3);
-        addHistoryToHistoryMap("14", linkedHashMap3);
-        addHistoryToHistoryMap("15", linkedHashMap3);
-        addHistoryToHistoryMap("16", linkedHashMap3);
-        addHistoryToHistoryMap("17", linkedHashMap3);
-        System.out.println(linkedHashMap3);
+        for (int i = 0; i < 20; i++) {
+            historyMap.put(i, i + "");
+        }
+
+        System.out.println(historyMap);
 
         //1 Создайте TreeMap и добавьте 5 ключей (имена) и значений (баллы). Выведите отсортированные данные.
 
@@ -295,25 +275,6 @@ public class Main {
         System.out.println("Элемент '" + element + "' добавлен");
     }
 
-    public static int getNearMin(int i, Set<Integer> set) {
-        int min = Integer.MIN_VALUE;
-        for (Integer n : set) {
-            if (n > min && i > n) {
-                min = n;
-            }
-        }
-        return min;
-    }
-
-    public static int getNearMax(int i, Set<Integer> set) {
-        int max = Integer.MAX_VALUE;
-        for (Integer n : set) {
-            if (n < max && i < n) {
-                max = n;
-            }
-        }
-        return max;
-    }
 
     public static void printMinorsUser(Map<String, Integer> map) {
         map.forEach((name, year) -> {
@@ -321,16 +282,6 @@ public class Main {
                 System.out.println(name + ", " + year);
             }
         });
-    }
-
-    public static void addHistoryToHistoryMap(String url, Map<Integer, String> history) {
-        numberOfUserHistory++;
-        if (history.size() >= 10) {
-            Integer oldestKey = history.keySet().iterator().next();
-            history.remove(oldestKey);
-        }
-        history.put(numberOfUserHistory, url);
-
     }
 
 }
