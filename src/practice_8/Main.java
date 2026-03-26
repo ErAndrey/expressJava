@@ -20,13 +20,12 @@ public class Main {
         System.out.println("add = " + add.calculate(x, y));
         System.out.println("sub = " + sub.calculate(x, y));
         System.out.println("mul = " + mul.calculate(x, y));
-        System.out.println("div /y = " + div.calculate(x, y));
         try {
+            System.out.println("div /y = " + div.calculate(x, y));
             System.out.println("div /0 = " + div.calculate(x, 0));
         } catch (ArithmeticException e) {
             System.out.println("Обработали: " + e.getMessage());
         }
-
 
         //
 
