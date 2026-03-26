@@ -10,14 +10,23 @@ public class Main {
         MathOperation add = (x, y) -> x + y;
         MathOperation sub = (x, y) -> x - y;
         MathOperation mul = (x, y) -> x * y;
-        MathOperation div = (x, y) -> (double) Math.round((double) x / y * 100) / 100.0;
+        MathOperation div = (x, y) -> {
+            if (y == 0) throw new ArithmeticException("На 0 делить нельзя");
+            return  (double) Math.round((double) x / y * 100) / 100.0;
+        };
 
-        int x = 4, y = 7;
+        int x = 4, y = 6;
         System.out.println("Для чисел: " + x + ", " + y);
         System.out.println("add = " + add.calculate(x, y));
         System.out.println("sub = " + sub.calculate(x, y));
         System.out.println("mul = " + mul.calculate(x, y));
-        System.out.println("div = " + div.calculate(x, y));
+        System.out.println("div /y = " + div.calculate(x, y));
+        try {
+            System.out.println("div /0 = " + div.calculate(x, 0));
+        } catch (ArithmeticException e) {
+            System.out.println("Обработали: " + e.getMessage());
+        }
+
 
         //
 
