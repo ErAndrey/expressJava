@@ -1,6 +1,6 @@
-package test;
+package new_task;
 
-import test.task_1.User;
+import new_task.task_1.User;
 
 import java.util.*;
 

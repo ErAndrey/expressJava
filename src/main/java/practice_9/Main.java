@@ -1,6 +1,5 @@
 package practice_9;
 
-import java.io.Console;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
@@ -44,36 +43,41 @@ public class Main {
 
         Thread.sleep(2_000);
         stop = true;
+        t4.join();
+
         System.out.println("Что успел насчитать за 2 секунды: " + x.get());
 
         //
 
+        Counter counter = new Counter();
+
         Thread t5 = new Thread(() -> {
             for (int i = 0; i < 1_000; i++)
-                Counter.increment();
+                counter.increment();
         });
         Thread t6 = new Thread(() -> {
             for (int i = 0; i < 1_000; i++)
-                Counter.increment();
+                counter.increment();
         });
 
-        System.out.println("До инкрементации потоками: " + Counter.getX());
+        System.out.println("До инкрементации потоками: " + counter.getX());
 
         t5.start();
         t6.start();
         t5.join();
         t6.join();
 
-        System.out.println("После инкрементации потоками: " + Counter.getX());
+        System.out.println("После инкрементации потоками: " + counter.getX());
     }
     public static void printSomeForNRepeatWithSleep(String whatAPrint, int repeat, int eachSleepSeconds) {
         int absRepeat = Math.abs(repeat);
-        for (int i = 0; i < absRepeat; i++) {
-            System.out.println("Цикл " + (i + 1) + ": " + whatAPrint);
+        for (int i = 1; i <= absRepeat; i++) {
+            System.out.println("Цикл " + i + ": " + whatAPrint);
             if (i < absRepeat - 1) {
                 try {
                     Thread.sleep(eachSleepSeconds * 1_000L);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     System.out.println(e.getMessage());
                 }
             }

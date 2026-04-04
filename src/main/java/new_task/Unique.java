@@ -1,4 +1,4 @@
-package test;
+package new_task;
 
 import java.util.*;
 

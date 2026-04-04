@@ -1,4 +1,4 @@
-package test.task_3;
+package new_task.task_3;
 
 import java.time.LocalDate;
 

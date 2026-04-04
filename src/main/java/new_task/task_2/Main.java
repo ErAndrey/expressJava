@@ -1,4 +1,4 @@
-package test.task_2;
+package new_task.task_2;
 
 import java.util.ArrayList;
 import java.util.List;

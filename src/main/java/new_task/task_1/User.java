@@ -1,4 +1,4 @@
-package test.task_1;
+package new_task.task_1;
 
 import java.util.Objects;
 
