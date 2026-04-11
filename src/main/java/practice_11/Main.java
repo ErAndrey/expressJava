@@ -46,7 +46,7 @@ public class Main {
         System.out.println("Updated age: " + person.getAge());
 
         //6
-        countdown(5);
+        countdown(-1);
 
         //7
 
@@ -54,6 +54,13 @@ public class Main {
         Thread t2 = new Thread(() -> withdraw(50));
         t1.start();
         t2.start();
+
+        try {
+            t1.join();
+            t2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         //8
 
@@ -106,6 +113,7 @@ public class Main {
     }
 
     public static void countdown(int n) {
+        if (n <= 0) return;
         System.out.println(n);
         if (n == 1) return;
         countdown(n - 1);
@@ -116,6 +124,7 @@ public class Main {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
             balance -= amount;
             System.out.println("New balance: " + balance);
