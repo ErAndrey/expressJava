@@ -34,11 +34,11 @@ public final class FindSecondMaxTest extends Preconditions {
     private Stream<Arguments> dataForPositiveCases() {
         return Stream.of(
                 Arguments.of(new int[]{1, 1}, 1),
-                Arguments.of(new int[]{1, 2}, 2), //toDo [BUG] Проблема в .skip() - int findSecondMax(int[] numbers)
-                Arguments.of(new int[]{-1, 0}, 0), //toDo [BUG] Проблема в .skip() - int findSecondMax(int[] numbers)
+                Arguments.of(new int[]{1, 2}, 1),
+                Arguments.of(new int[]{-1, 0}, -1),
                 Arguments.of(new int[]{1, 2, 3}, 2),
                 Arguments.of(new int[]{-1, -5, -3}, -3),
-                Arguments.of(new int[]{-1, -5, 0, 5}, -1) //toDo [BUG] Проблема в .skip() - int findSecondMax(int[] numbers)
+                Arguments.of(new int[]{-1, -5, 0, 5}, 0)
         );
     }
 

@@ -13,7 +13,7 @@ public final class HasDuplicatesTest extends Preconditions {
      * [1, 2, 2, 3] → true
      *
      * Corner :
-     * [0, -0] - false
+     * [0, -0] - true
      * Пустой массив → false
      *
      * Negative :

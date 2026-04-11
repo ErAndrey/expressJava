@@ -61,7 +61,7 @@ public final class SplitStringTest extends Preconditions {
 
     //toDo [BUG] Не обрабатывается null в аргументе - String[] splitString(String input, String delimiter)
     @ParameterizedTest
-    @MethodSource("dataForCornerCases")
+    @MethodSource("dataForNegativeCases")
     void splitString_ReturnsIllegalArgumentException_WhenInputStringOrDelimiterIsNull(String input, String delimiter) {
         assertThrows(IllegalArgumentException.class, () -> targetClass.splitString(input, delimiter));
     }

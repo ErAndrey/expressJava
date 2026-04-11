@@ -5,8 +5,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
-@DisplayName("Tests for : \"boolean isValidEmail(String email)\"")
+@DisplayName("Tests for : \"boolean isLeapYear(int year)\"")
 public final class IsLeapYearTest extends Preconditions {
+
     /**
      * Positive :
      * % 400
