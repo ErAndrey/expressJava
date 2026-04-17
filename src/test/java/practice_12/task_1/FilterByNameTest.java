@@ -68,7 +68,7 @@ public class FilterByNameTest extends Preconditions {
     }
 
     @Test
-    void filterByName_ReturnsException_WhenFilteredListIsEmpty() {
-        assertThrows(NoSuchElementException.class, () -> targetClass.filterByName(""));
+    void filterByName_ReturnsEmptyList_WhenFilteredListIsEmpty() {
+        assertTrue(targetClass.filterByName("Name").isEmpty());
     }
 }

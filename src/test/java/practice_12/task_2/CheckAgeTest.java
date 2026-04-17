@@ -25,20 +25,20 @@ public class CheckAgeTest extends Preconditions {
     @Test
     void checkAge_ReturnsFalse_WhenValidationEnabledFalseAndUserAgeIsValid() {
         targetClass.updateValidationEnabled(false);
-        assertFalse(targetClass.checkAge());
+        assertFalse(targetClass.checkAge(user));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {18, 25, 50, 100})
     void checkAge_ReturnsTrue_WhenAgeIsCorrect(int age) {
         user.setAge(age);
-        assertTrue(targetClass.checkAge());
+        assertTrue(targetClass.checkAge(user));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, 17, 101, 200})
     void checkName_ReturnsException_WhenNameIsIncorrect(int age) {
         user.setAge(age);
-        assertThrows(InvalidUserException.class, () -> targetClass.checkAge());
+        assertThrows(InvalidUserException.class, () -> targetClass.checkAge(user));
     }
 }

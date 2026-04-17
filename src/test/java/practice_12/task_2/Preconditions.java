@@ -11,7 +11,7 @@ public class Preconditions {
     @BeforeEach
     void getPreconditions() {
         this.user = new User("Андрей", 20, "ero@bk.ru");
-        this.targetClass = new UserValidator(user);
+        this.targetClass = new UserValidator();
         this.targetClass.updateValidationEnabled(true);
     }
 }

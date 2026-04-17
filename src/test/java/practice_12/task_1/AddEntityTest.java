@@ -35,7 +35,7 @@ public class AddEntityTest extends Preconditions {
 
         assertEquals(x.getName(), actual.getName());
         assertEquals(x.getAge(), actual.getAge());
-        assertEquals(x.getIsActive(), actual.getIsActive());
+        assertEquals(x.isActive(), actual.isActive());
     }
 
     @Test
@@ -65,6 +65,6 @@ public class AddEntityTest extends Preconditions {
 
     @Test
     void addEntity_ReturnsException_WhenInputIsNull() {
-        assertThrows(IllegalUserAgeException.class, () -> targetClass.addEntity(null));
+        assertThrows(IllegalArgumentException.class, () -> targetClass.addEntity(null));
     }
 }

@@ -13,7 +13,7 @@ public class GradeService <T extends Number> {
     }
 
     public List<StudentGrade<T>> getStudentGrades() {
-        return this.studentGrades;
+        return List.copyOf(this.studentGrades);
     }
 
     public synchronized void addGrade(StudentGrade<T> studentGrade) {

@@ -18,7 +18,8 @@ public class TaskService <T> {
     }
 
     public synchronized boolean removeTaskFromList(T taskId) {
-            return taskId != null && this.tasks.removeIf(task -> task.getId().equals(taskId));
+        if (taskId == null) throw new IllegalArgumentException("Cant remove for null task id");
+        return this.tasks.removeIf(task -> task.getId().equals(taskId));
     }
 
     public Map<String, List<Task<T>>> filterTasksByStatus() {
@@ -28,6 +29,7 @@ public class TaskService <T> {
     }
 
     public List<Task<T>> filterTaskListByPriority(Priority priority) {
+        if (priority == null) throw new IllegalArgumentException("Cant filter for null");
         return this.tasks
                 .stream()
                 .filter(task -> task.getPriority().equals(priority))
@@ -47,7 +49,7 @@ public class TaskService <T> {
                 .toList();
     }
 
-    public int getSizeList() {
+    public int size() {
         return this.tasks.size();
     }
 }

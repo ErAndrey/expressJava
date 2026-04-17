@@ -21,7 +21,7 @@ public abstract class Entity {
         return this.age;
     }
 
-    public boolean getIsActive() {
+    public boolean isActive() {
         return this.isActive;
     }
 
@@ -34,7 +34,7 @@ public abstract class Entity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Entity entity)) return false;
-        return Objects.equals(this.name, entity.name) && this.age == entity.getAge() && this.isActive == entity.getIsActive();
+        return Objects.equals(this.name, entity.name) && this.age == entity.getAge() && this.isActive == entity.isActive;
     }
 
     @Override

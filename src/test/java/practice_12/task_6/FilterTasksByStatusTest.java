@@ -30,8 +30,8 @@ public class FilterTasksByStatusTest extends Preconditions {
         targetClass.addTaskToList(x2);
         targetClass.addTaskToList(x3);
 
-        x2.closedTask();
-        x3.closedTask();
+        x2.closeTask();
+        x3.closeTask();
 
         assertEquals(1, targetClass.filterTasksByStatus().size());
         assertEquals(2, targetClass.filterTasksByStatus().get("Закрытые").size());
@@ -44,9 +44,9 @@ public class FilterTasksByStatusTest extends Preconditions {
         targetClass.addTaskToList(x3);
         targetClass.addTaskToList(x4);
 
-        x2.closedTask();
-        x3.closedTask();
-        x4.closedTask();
+        x2.closeTask();
+        x3.closeTask();
+        x4.closeTask();
 
         assertEquals(2, targetClass.filterTasksByStatus().size());
         assertEquals(1, targetClass.filterTasksByStatus().get("Открытые").size());

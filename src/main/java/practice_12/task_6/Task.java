@@ -24,7 +24,7 @@ public class Task<T> {
         return isClosed;
     }
 
-    public void closedTask() {
+    public void closeTask() {
         this.isClosed = true;
     }
 

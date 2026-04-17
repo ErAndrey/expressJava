@@ -11,12 +11,14 @@ public final class EntityManager<T extends Entity> {
     }
 
     public void addEntity(T entity) {
+        if (entity == null) throw new IllegalArgumentException("Cant add null");
         if (!this.entities.contains(entity)) {
             this.entities.add(entity);
         }
     }
 
     public boolean removeEntity(T entity) {
+        if (entity == null) throw new IllegalArgumentException("Cant remove null");
         if (this.entities.contains(entity)) {
             return this.entities.remove(entity);
         }
@@ -35,6 +37,7 @@ public final class EntityManager<T extends Entity> {
     }
 
     public List<T> filterByName(String name) {
+        if (name == null) throw new IllegalArgumentException("Cant search for null");
         return this.entities
                 .stream()
                 .filter(e -> e.getName().equalsIgnoreCase(name))
@@ -44,7 +47,7 @@ public final class EntityManager<T extends Entity> {
     public List<T> filterByActive(boolean isActive) {
         return this.entities
                 .stream()
-                .filter(e -> e.getIsActive() == isActive)
+                .filter(e -> e.isActive() == isActive)
                 .toList();
     }
 }

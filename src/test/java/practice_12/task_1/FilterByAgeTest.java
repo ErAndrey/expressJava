@@ -10,8 +10,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("Tests for : \"List<T> filterByAge(int from, int to)\"")
@@ -37,9 +36,9 @@ public class FilterByAgeTest extends Preconditions {
      *
      * Corner :
      * Ищем 20, 20 -> 1 элемент
+     * Ищем у пустого листа -> пустой лист
      *
      * Negative :
-     * Ищем у пустого листа -> NoSuch
      * Ищем по невалидным from и to -> Illegal
      */
 
@@ -59,7 +58,7 @@ public class FilterByAgeTest extends Preconditions {
     }
 
     @Test
-    void filterByName_ReturnsException_WhenFilteredListIsEmpty() {
-        assertThrows(NoSuchElementException.class, () -> targetClass.filterByAge(0, 0));
+    void filterByName_ReturnsEmptyList_WhenFilteredListIsEmpty() {
+        assertTrue(targetClass.filterByAge(0, 0).isEmpty());
     }
 }

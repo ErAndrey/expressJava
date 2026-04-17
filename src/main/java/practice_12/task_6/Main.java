@@ -21,7 +21,7 @@ public class Main {
         integerTaskService.addTaskToList(task5);
         integerTaskService.addTaskToList(task6);
 
-        System.out.println(integerTaskService.getSizeList());
+        System.out.println(integerTaskService.size());
 
         System.out.println("filterTasksByStatus: " + integerTaskService.filterTasksByStatus());
         System.out.println("filterTaskListByPriority LOW: " + integerTaskService.filterTaskListByPriority(Priority.LOW));
@@ -29,15 +29,15 @@ public class Main {
         System.out.println("sortTaskByDate: " + integerTaskService.sortTaskByDate());
 
         System.out.println(integerTaskService.removeTaskFromList(5));
-        System.out.println(integerTaskService.getSizeList());
+        System.out.println(integerTaskService.size());
 
         System.out.println(integerTaskService.removeTaskFromList(5));
-        System.out.println(integerTaskService.getSizeList());
+        System.out.println(integerTaskService.size());
 
         System.out.println(integerTaskService.removeTaskFromList(1));
-        System.out.println(integerTaskService.getSizeList());
+        System.out.println(integerTaskService.size());
 
         System.out.println(integerTaskService.removeTaskFromList(1));
-        System.out.println(integerTaskService.getSizeList());
+        System.out.println(integerTaskService.size());
     }
 }

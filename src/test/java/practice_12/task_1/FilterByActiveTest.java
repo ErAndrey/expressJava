@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Tests for : \"List<T> filterByActive(boolean isActive)\"")
 public class FilterByActiveTest extends Preconditions {
@@ -29,7 +28,7 @@ public class FilterByActiveTest extends Preconditions {
     }
 
     @Test
-    void filterByActive_ReturnsException_WhenFilteredListIsEmpty() {
-        assertThrows(NoSuchElementException.class, () -> targetClass.filterByActive(false));
+    void filterByActive_ReturnsEmptyList_WhenFilteredListIsEmpty() {
+        assertTrue(targetClass.filterByActive(false).isEmpty());
     }
 }

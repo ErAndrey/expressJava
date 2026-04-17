@@ -66,6 +66,6 @@ public class removeEntityTest extends Preconditions {
 
     @Test
     void removeEntity_ReturnsException_WhenInputIsNull() {
-        assertThrows(IllegalUserAgeException.class, () -> targetClass.removeEntity(null));
+        assertThrows(IllegalArgumentException.class, () -> targetClass.removeEntity(null));
     }
 }

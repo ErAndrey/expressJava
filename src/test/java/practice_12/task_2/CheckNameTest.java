@@ -28,26 +28,26 @@ public class CheckNameTest extends Preconditions {
     @Test
     void checkName_ReturnsFalse_WhenValidationEnabledFalseAndUserNameIsValid() {
         targetClass.updateValidationEnabled(false);
-        assertFalse(targetClass.checkName());
+        assertFalse(targetClass.checkName(user));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Andrey", "MashA", "Sasha"})
     void checkName_ReturnsTrue_WhenNameIsCorrect(String name) {
         user.setName(name);
-        assertTrue(targetClass.checkName());
+        assertTrue(targetClass.checkName(user));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "andrew"})
     void checkName_ReturnsException_WhenNameIsIncorrect(String name) {
         user.setName(name);
-        assertThrows(InvalidUserException.class, () -> targetClass.checkName());
+        assertThrows(InvalidUserException.class, () -> targetClass.checkName(user));
     }
 
     @Test
     void checkName_ReturnsException_WhenInputIsNull() {
         user.setName(null);
-        assertThrows(IllegalArgumentException.class, () -> targetClass.checkName());
+        assertThrows(IllegalArgumentException.class, () -> targetClass.checkName(user));
     }
 }

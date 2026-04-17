@@ -4,7 +4,6 @@ public final class UserValidator {
     private final static String regexForName;
     private final static String regexForEmail;
 
-    private final User user;
     private boolean validationEnabled;
 
     static {
@@ -12,8 +11,7 @@ public final class UserValidator {
         regexForEmail = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     }
 
-    public UserValidator(User user) {
-        this.user = user;
+    public UserValidator() {
         this.validationEnabled = false;
     }
 
@@ -25,7 +23,7 @@ public final class UserValidator {
         this.validationEnabled = validationEnabled;
     }
 
-    public boolean checkName() {
+    public boolean checkName(User user) {
         if (this.validationEnabled) {
             String userName = user.getName();
             if (userName == null) {
@@ -39,7 +37,7 @@ public final class UserValidator {
         return false;
     }
 
-    public boolean checkAge() {
+    public boolean checkAge(User user) {
         if (this.validationEnabled) {
             int userAge = user.getAge();
             if (userAge >= 18 && userAge <= 100) {
@@ -50,7 +48,7 @@ public final class UserValidator {
         return false;
     }
 
-    public boolean checkEmail() {
+    public boolean checkEmail(User user) {
         if (this.validationEnabled) {
             String userEmail = user.getEmail();
             if (userEmail == null) {

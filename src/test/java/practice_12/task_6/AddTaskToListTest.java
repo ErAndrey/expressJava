@@ -23,24 +23,24 @@ public class AddTaskToListTest extends Preconditions {
 
     @Test
     void addTaskToList_CanAddTaskWithUniqueId() {
-        assertEquals(0, targetClass.getSizeList());
+        assertEquals(0, targetClass.size());
 
         targetClass.addTaskToList(x1);
-        assertEquals(1, targetClass.getSizeList());
+        assertEquals(1, targetClass.size());
 
         targetClass.addTaskToList(x2);
-        assertEquals(2, targetClass.getSizeList());
+        assertEquals(2, targetClass.size());
 
         targetClass.addTaskToList(x3);
         targetClass.addTaskToList(x6);
-        assertEquals(4, targetClass.getSizeList());
+        assertEquals(4, targetClass.size());
     }
 
     @Test
     void addTaskToList_CantAddEqualIdTask() {
         targetClass.addTaskToList(x1);
         targetClass.addTaskToList(x1);
-        assertEquals(1, targetClass.getSizeList());
+        assertEquals(1, targetClass.size());
     }
 
     @Test

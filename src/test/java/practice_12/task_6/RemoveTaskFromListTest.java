@@ -35,7 +35,7 @@ public class RemoveTaskFromListTest extends Preconditions {
         targetClass.addTaskToList(x5);
         targetClass.addTaskToList(x6);
 
-        assertEquals(6, targetClass.getSizeList());
+        assertEquals(6, targetClass.size());
 
         Thread t1 = new Thread(() -> {
             targetClass.removeTaskFromList(1);
@@ -63,15 +63,15 @@ public class RemoveTaskFromListTest extends Preconditions {
             Thread.currentThread().interrupt();
         }
 
-        assertEquals(1, targetClass.getSizeList());
+        assertEquals(1, targetClass.size());
 
         assertTrue(targetClass.removeTaskFromList(6));
-        assertEquals(0, targetClass.getSizeList());
+        assertEquals(0, targetClass.size());
     }
 
     @Test
     void removeTaskFromList_ReturnsFalse_WhenWeDeleteNotContainedTask() {
-        assertEquals(0, targetClass.getSizeList());
+        assertEquals(0, targetClass.size());
         assertFalse(targetClass.removeTaskFromList(1));
     }
 

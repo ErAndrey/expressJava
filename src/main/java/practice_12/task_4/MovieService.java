@@ -18,16 +18,11 @@ public class MovieService<T extends Number> {
         if (rating == null || movie == null) {
             throw new IllegalArgumentException("Входные данные null");
         }
-        if (!(rating.rating().doubleValue() >= 1 && rating.rating().doubleValue() <= 10.0)) {
+        double ratingValue = rating.rating().doubleValue();
+        if (ratingValue < 1 || ratingValue > 10.0) {
             throw new IllegalArgumentException("Рейтинг должен быть в диапазоне [1, 10]");
         }
-        if (!this.movies.containsKey(movie)) {
-            this.movies.put(movie, new ArrayList<>(List.of(rating)));
-            return;
-        }
-        List<Rating<T>> movieRatingList = this.movies.get(movie);
-        movieRatingList.add(rating);
-        this.movies.put(movie, movieRatingList);
+        this.movies.computeIfAbsent(movie, m -> new ArrayList<>()).add(rating);
     }
 
     public Map<Movie, Double> getAveragingRatingForMovies() {
