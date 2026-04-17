@@ -1,4 +1,4 @@
-package new_task;
+package new_task.task_5;
 
 import java.util.*;
 
