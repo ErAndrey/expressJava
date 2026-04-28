@@ -6,12 +6,8 @@ public class Main {
         Casino casino = new Casino(andrew, 50_000);
 
         andrew.deposit(25_000);
-
-        while (andrew.getBalance() != 0) {
-            casino.playSlot();
-            casino.playEven();
-        }
-
         System.out.println("Баланс казино " + casino.getBalance() + "₽");
+
+        casino.play();
     }
 }

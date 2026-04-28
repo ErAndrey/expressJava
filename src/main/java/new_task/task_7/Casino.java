@@ -1,18 +1,38 @@
 package new_task.task_7;
 
-import java.util.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Random;
+import java.util.Scanner;
 
 public final class Casino {
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final Random RANDOM = new Random();
+
+    private static final int MIN_BALANCE_FOR_PLAY = 100;
     private static final char CURRENCY = '₽';
+    private static final String SPACE = "   ";
+    private static final DecimalFormat FORMATTER;
+
     private static final String YELLOW = "\u001B[93m";
+    private static final String PURPLE = "\u001B[35m";
     private static final String GREEN = "\u001B[92m";
     private static final String RED = "\u001B[31m";
     private static final String RESET = "\u001B[0m";
 
+    static {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator(' '); // пробел как разделитель
+        FORMATTER = new DecimalFormat("#,###", symbols);
+    }
+
     private final Player player;
     private double balance;
+
+    @FunctionalInterface
+    private interface GameRunnable {
+        void run() throws InterruptedException;
+    }
 
     public Casino(Player player, int balance) {
         this.player = player;
@@ -41,32 +61,67 @@ public final class Casino {
         }
 
         if (player.getBalance() < bet) {
-            System.out.println("Недостаточно средств! Ваш баланс: " + player.getBalance() + "₽");
+            System.out.println(RED + "Недостаточно средств! " + RESET + " Ваш баланс: " + formatCurrency(player.getBalance()));
             return -1;
         }
 
         if (this.balance < bet * 2) {
-            System.out.println("Извините, казино не может принять такую ставку. Доступно для выплат: " + this.balance + "₽");
-            System.out.println("Максимальная ставка: " + (int) (this.balance / 2) + "₽");
+            System.out.println("Извините, казино не может принять такую ставку. Доступно для выплат: " + formatCurrency(this.balance));
+            System.out.println("Максимальная ставка: " + formatCurrency((int) (this.balance / 2)));
             return -1;
         }
 
         return bet;
     }
 
-    private boolean isNotAvailableBalanceForPlay() {
-        System.out.println("Ваш баланс: " + player.getBalance() + "₽\n");
+    private static String formatCurrency(int amount) {
+        return FORMATTER.format(amount) + " " + CURRENCY;
+    }
 
-        if (player.getBalance() < 100.0) {
-            System.out.println("\nНа вашем балансе недостаточно средств, для начала игры должно быть минимум 100.0₽");
-            return true;
+    private static String formatCurrency(double amount) {
+        return FORMATTER.format(amount) + " " + CURRENCY;
+    }
+
+    private int whatToDoNext(int maxActions) {
+        int action;
+
+        while (true) {
+            System.out.print(PURPLE + "Что делаем: " + RESET);
+            action = SCANNER.nextInt();
+            if (action >= 0 && action <= maxActions) break;
+            System.out.println("Выберите доступное действие: 0-" + maxActions);
+        }
+
+        return action;
+    }
+
+    private boolean askToContinue() throws InterruptedException {
+        System.out.println(
+                """
+                Желаете продолжить?
+                0. Вернуться в меню
+                1. Продолжить
+                """
+        );
+
+        int choice = whatToDoNext(1);
+
+        if (choice == 1) return true;
+
+
+        System.out.print("Возвращаемся в меню");
+        for (int i = 1; i <= 3; i++) {
+            Thread.sleep(1_000);
+            System.out.print(".");
+            if (i == 3) {
+                Thread.sleep(500);
+                System.out.println();
+            }
         }
         return false;
     }
 
-    public void playEven() throws InterruptedException {
-        if (isNotAvailableBalanceForPlay()) return;
-
+    private void playEven() throws InterruptedException {
         System.out.println(YELLOW + "Игра \"isEven\": " + RESET + "Угадайте, выбрав чет или нечет!\n");
 
         int selectNumber;
@@ -83,57 +138,48 @@ public final class Casino {
         this.balance += bet;
 
         String parity = (selectNumber == 1) ? "Нечетное" : "Четное";
-
-        System.out.println(YELLOW + "\nВаша ставка: " + RESET + parity + ", " + bet + "₽\n");
+        System.out.println(YELLOW + "\nВаша ставка: " + RESET + parity + ", " + formatCurrency(bet) + "\n");
 
         String[] spinner = {"|", "/", "-", "\\"};
         String text = " Крутим рулетку";
-        int totalFrames = 24;
 
-        for (int i = 0; i < totalFrames; i++) {
+        for (int i = 0; i < 24; i++) {
             int dotsCount = (i % 8) / 2;
-
-            String dots = ".".repeat(dotsCount);
-
-            System.out.print("\r" + spinner[i % spinner.length] + text + dots);
+            System.out.print("\r" + spinner[i % spinner.length] + text + ".".repeat(dotsCount));
             Thread.sleep(250);
         }
 
         System.out.print("\r" + " ".repeat(text.length() + 6) + "\r");
 
         int random = RANDOM.nextInt(0, 37);
-        String randomParity = random % 2 == 0 ? "Четное" : "Нечетное";
-
-        if (random == 0) {
-            System.out.println("Выпало число " + random);
-        } else {
-            System.out.println("Выпало число " + random + " - " + randomParity + "\n");
-        }
-
         Thread.sleep(500);
 
         boolean playerWin;
-        if (random == 0) {
-            playerWin = false;
-            System.out.println("Увы, ставка проиграна!");
-        } else {
-            boolean isEven = (random % 2 == 0);
-            if ((selectNumber == 1 && !isEven) || (selectNumber == 2 && isEven)) {
-                playerWin = true;
 
+        if (random == 0) {
+            System.out.println("Выпало число 0");
+            System.out.println("Увы, ставка проиграна!");
+            playerWin = false;
+        } else {
+            String randomParity = random % 2 == 0 ? "Четное" : "Нечетное";
+            System.out.println("Выпало число " + random + " - " + randomParity + "\n");
+
+            boolean isEven = (random % 2 == 0);
+            playerWin = (selectNumber == 1 && !isEven) || (selectNumber == 2 && isEven);
+
+            if (playerWin) {
                 System.out.println("Поздравляем! Ваша ставка выиграла!");
             } else {
-                playerWin = false;
                 System.out.println("К сожалению, вы не угадали.");
             }
         }
 
         if (playerWin) {
             int winAmount = bet * 2;
-            System.out.println(GREEN + "Ваш выигрыш: " + RESET + bet + "₽");
+            System.out.println(GREEN + "Ваш выигрыш: " + RESET + formatCurrency(winAmount));
 
             if (this.balance < winAmount) {
-                System.out.println("Ошибка казино: Недостаточно средств для выплаты!");
+                System.out.println(RED + "Ошибка казино: " + RESET + "Недостаточно средств для выплаты!");
                 this.player.deposit(bet);
                 this.balance -= bet;
                 return;
@@ -143,13 +189,12 @@ public final class Casino {
             this.balance -= winAmount;
 
         } else {
-            System.out.println(RED + "Вы проиграли " + RESET + bet + "₽");
+            System.out.println(RED + "Вы проиграли " + RESET + formatCurrency(bet));
         }
+        System.out.println();
     }
 
-    public void playSlot() throws InterruptedException {
-        if (isNotAvailableBalanceForPlay()) return;
-
+    private void playSlot() throws InterruptedException {
         System.out.println(YELLOW + "Игра \"Slots\": " + RESET + "Чтобы крутануть слот, укажите ставку!\n");
 
         int bet;
@@ -160,10 +205,9 @@ public final class Casino {
         this.player.withdraw(bet);
         this.balance += bet;
 
-        System.out.println(YELLOW + "\nВаша ставка: " + RESET + bet + CURRENCY + "\n");
+        System.out.println(YELLOW + "\nВаша ставка: " + RESET + formatCurrency(bet) + "\n");
 
         int[] results = new int[3];
-
         String[] spinner = {"|", "/", "-", "\\"};
         int spinDuration = 20;
 
@@ -174,13 +218,13 @@ public final class Casino {
                 System.out.print("\r");
 
                 for (int s = 0; s < step; s++) {
-                    System.out.print(results[s] + "   ");
+                    System.out.print(results[s] + SPACE);
                 }
 
-                System.out.print(spinner[i % spinner.length] + "   ");
+                System.out.print(spinner[i % spinner.length] + SPACE);
 
                 for (int s = step + 1; s < 3; s++) {
-                    System.out.print(spinner[i % spinner.length] + "   ");
+                    System.out.print(spinner[i % spinner.length] + SPACE);
                 }
 
                 Thread.sleep(70);
@@ -188,65 +232,94 @@ public final class Casino {
 
             System.out.print("\r");
             for (int s = 0; s <= step; s++) {
-                System.out.print(results[s] + "   ");
+                System.out.print(results[s] + SPACE);
             }
             for (int s = step + 1; s < 3; s++) {
-                System.out.print(spinner[0] + "   ");
+                System.out.print(spinner[0] + SPACE);
             }
 
             Thread.sleep(200);
         }
 
+        Thread.sleep(500);
+
         System.out.println();
 
         int winAmount = 0;
-        String winMessage = "";
-
         if (results[0] == results[1] && results[1] == results[2]) {
             winAmount = bet * 10;
-            winMessage = "Джекпот! Все три числа совпали!";
-            System.out.println("\n" + winMessage);
+            System.out.println("\nДжекпот! Все три числа совпали!");
         } else if (results[0] == results[1] || results[1] == results[2] || results[0] == results[2]) {
             winAmount = bet * 3;
-            winMessage = "Победа! Два числа совпали!";
-            System.out.println("\n" + winMessage);
+            System.out.println("\nПобеда! Два числа совпали!");
         } else {
-            winMessage = "Ни одно число не совпало. Повезет в другой раз!";
-            System.out.println("\n" + winMessage);
+            System.out.println("\nНи одно число не совпало. Повезет в другой раз!");
         }
 
         if (winAmount > 0) {
             if (this.balance < winAmount) {
-                System.out.println("Ошибка казино: Недостаточно средств для выплаты!");
+                System.out.println(RED + "Ошибка казино: " + RESET + "Недостаточно средств для выплаты!");
                 this.player.deposit(bet);
                 this.balance -= bet;
                 return;
             }
-            System.out.println(GREEN + "Ваш выигрыш: " + RESET + winAmount + "₽");
+            System.out.println(GREEN + "Ваш выигрыш: " + RESET + formatCurrency(winAmount));
             this.player.deposit(winAmount);
             this.balance -= winAmount;
         } else {
-            System.out.println(RED + "Вы проиграли: " + RESET + bet + "₽");
+            System.out.println(RED + "Вы проиграли: " + RESET + formatCurrency(bet));
         }
         System.out.println();
     }
 
-    public void play() {} //toDo
+    public void play() throws InterruptedException {
+        System.out.println("\nДобро пожаловать в казино Java, " + player.getName() + "! Приятного отдыха ;)");
 
-    /**
-     * Хочу один метод play(), который позволяет выбирать игры [playEven(), playSlot()]
-     * При запуске play() показывается список доступных действий :
-     * 0. Выйти
-     * 1. Проверить баланс
-     * 2. Играть Slots
-     * 3. Играть OddEven
-     *
-     * Юзеру выводится сообщение: "Что делаем: " - в это время запрашивается SCANNER .nextInt()
-     * При вводе 0 -> завершает работу метода play()
-     * При вводе 1 -> выводит баланс player-а
-     * При вводе 2 -> запускает игру playSlot()
-     * При вводе 3 -> запускает игру playEven()
-     *
-     * После игр, playSlot(), playEven() спрашивает, Желаете сыграть еще?
-     */
+        while (true) {
+            System.out.println(
+                    YELLOW +
+                    "\nМеню\n" +
+                    RESET +
+                    """
+                    0. Выйти
+                    1. Баланс
+                    2. Играть Slots
+                    3. Играть OddEven
+                    """
+            );
+
+            int action = whatToDoNext(3);
+
+            switch (action) {
+                case 0 -> {
+                    System.out.println("До встречи, " + player.getName() + "! Ждем вас снова ;)");
+                    return;
+                }
+                case 1 -> System.out.println(YELLOW + "Ваш баланс: " + RESET + formatCurrency(player.getBalance()));
+                case 2 -> playGameLoop("Slots", this::playSlot);
+                case 3 -> playGameLoop("OddEven", this::playEven);
+            }
+        }
+    }
+
+    private void playGameLoop(String gameName, GameRunnable game) throws InterruptedException {
+        if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
+            System.out.println("Для входа в игру " + gameName + " нужно минимум " + formatCurrency(MIN_BALANCE_FOR_PLAY));
+            return;
+        }
+
+        boolean continueGame = true;
+        while (continueGame) {
+            game.run();
+
+            if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
+                System.out.println("\nВаш баланс: " + formatCurrency(player.getBalance()));
+                System.out.println("Баланс ниже минимального (" + formatCurrency(MIN_BALANCE_FOR_PLAY) + "). Возврат в меню...");
+                Thread.sleep(1_000);
+                break;
+            }
+
+            continueGame = askToContinue();
+        }
+    }
 }
