@@ -8,24 +8,17 @@ public class AuthService {
     private final Map<String, User> users = new HashMap<>();
     private User currentUser = null;
 
-    private static final String YELLOW = "\u001B[93m";
-    private static final String PURPLE = "\u001B[35m";
-    private static final String GREEN = "\u001B[92m";
-    private static final String RED = "\u001B[31m";
-    private static final String RESET = "\u001B[0m";
-
     public void start() throws InterruptedException {
         while (true) {
+            System.out.println("\n     ~       " + "|    <    |       +       |    >    |" + "       ~     ");
+            System.out.println(Utils.toInfo("Авторизация  ") + "|  Выход  |  Регистрация  |  Войти  |" + Utils.toInfo("  Авторизация"));
+            System.out.println("     ~       " + "|    0    |       1       |    2    |" +"       ~    \n");
 
-            System.out.println(       "\n     ~       "         + "|    <    |       +       |    >    |" +          "       ~     "         );
-            System.out.println(YELLOW + "Авторизация  " + RESET + "|  Выход  |  Регистрация  |  Войти  |" + YELLOW + "  Авторизация" + RESET);
-            System.out.println(         "     ~       "         + "|    0    |       1       |    2    |" +          "       ~    \n"         );
-
-            int choice = Casino.whatToDoNext(2);
+            int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
                 case 0 -> {
-                    System.out.println("До свидания! Ждем вас снова!");
+                    System.out.println("До свидания! Будем ждать вас снова!");
                     return;
                 }
                 case 1 -> register();
@@ -36,57 +29,57 @@ public class AuthService {
 
     private void login() throws InterruptedException {
         System.out.print("Логин: ");
-        String username = Casino.getScanner().next();
+        String username = Utils.next();
         System.out.print("Пароль: ");
-        String password = Casino.getScanner().next();
+        String password = Utils.next();
 
         Optional<User> userOpt = findUser(username, password);
 
         if (userOpt.isPresent()) {
             currentUser = userOpt.get();
-            System.out.println(GREEN + "Успешный вход!" + RESET);
+            System.out.println(Utils.toSuccess("System: ") + "Успешный вход!");
 
             if (currentUser.hasPlayer()) {
-                System.out.println("\nДобро пожаловать в казино Java, " + PURPLE + currentUser.getPlayer().getName() + RESET + "! Приятного отдыха ;)");
+                System.out.println("\nДобро пожаловать в казино Java, " + Utils.toAccent(currentUser.getPlayer().getName()) + "! Приятного отдыха ;)");
                 menu(currentUser.getPlayer());
             } else {
                 createPlayerProfile();
             }
         } else {
-            System.out.println(RED + "Неверный логин или пароль!" + RESET);
+            System.out.println(Utils.toError("System: ") + "Неверный логин или пароль!");
         }
     }
 
     private void register() throws InterruptedException {
         System.out.print("Придумайте логин: ");
-        String username = Casino.getScanner().next();
+        String username = Utils.next();
 
         if (users.containsKey(username)) {
-            System.out.println(RED + "Пользователь с таким логином уже существует!" + RESET);
+            System.out.println(Utils.toError("System: ") + "Пользователь с таким логином уже существует!");
             return;
         }
 
         System.out.print("Придумайте пароль: ");
-        String password = Casino.getScanner().next();
+        String password = Utils.next();
 
         User newUser = new User(username, password);
         users.put(username, newUser);
         currentUser = newUser;
 
-        System.out.println(GREEN + "Регистрация успешна!" + RESET);
+        System.out.println(Utils.toSuccess("System: ") + "Регистрация успешна!\n");
         createPlayerProfile();
     }
 
     private void createPlayerProfile() throws InterruptedException {
         System.out.print("Введите имя игрока: ");
-        String playerName = Casino.getScanner().next();
+        String playerName = Utils.next();
 
         Player newPlayer = new Player(playerName);
         currentUser.setPlayer(newPlayer);
 
-        System.out.println(GREEN + "Игровой профиль создан!" + RESET);
+        System.out.println(Utils.toSuccess("System: ") + "Игровой профиль создан!");
 
-        System.out.println("\nДобро пожаловать в казино Java, " + PURPLE + currentUser.getPlayer().getName() + RESET + "! Приятного отдыха ;)");
+        System.out.println("\nДобро пожаловать в казино Java, " + Utils.toAccent(currentUser.getPlayer().getName()) + "! Приятного отдыха ;)");
         menu(newPlayer);
     }
 
@@ -94,51 +87,50 @@ public class AuthService {
         Casino casino = new Casino(player, 100_000_000);
 
         while (true) {
-            System.out.println(       "\n   ~     "         + "|    <    |     ₽     |    >    |" +          "     ~    "        );
-            System.out.println(YELLOW + "Главная  " + RESET + "|  Выход  |  Депозит  |  Азарт  |" + YELLOW + "  Главная " + RESET);
-            System.out.println(         "   ~     "         + "|    0    |     1     |    2    |" +          "     ~    \n"      );
+            System.out.println("\n   ~     " + "|    <    |     ₽     |    >    |" +"     ~    ");
+            System.out.println(Utils.toInfo("Главная  ") + "|  Выход  |  Депозит  |  Азарт  |" + Utils.toInfo("  Главная "));
+            System.out.println("   ~     " + "|    0    |     1     |    2    |" + "     ~    \n");
 
-            int choice = Casino.whatToDoNext(2);
+            int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
                 case 0 -> {
-                    System.out.println("Возврат к авторизации..");
+                    System.out.println("Возвращаемся к авторизации");
+                    Utils.dotAnimation();
                     return;
                 }
-                case 1 -> balanceMenu(player);
+                case 1 -> balance(player);
                 case 2 -> casino.play();
             }
         }
     }
 
-    private void balanceMenu(Player player) throws InterruptedException {
+    private void balance(Player player) throws InterruptedException {
         while (true) {
-            System.out.println(YELLOW + "\nВаш баланс: " + RESET + player.getBalance() + "₽");
+            System.out.println(Utils.toInfo("\nВаш баланс: ") + Utils.formatCurrency(player.getBalance()));
 
-            System.out.println(       "\n   ~     "         + "|    <    |      ₽      |     >     |" +          "     ~   "        );
-            System.out.println(YELLOW + "Депозит  " + RESET + "|  Назад  |  Пополнить  |  Вывести  |" + YELLOW + "  Депозит" + RESET);
-            System.out.println(         "   ~     "         + "|    0    |      1      |     2     |" +          "     ~    \n"     );
+            System.out.println("\n   ~     " + "|    <    |      ₽      |     >     |" + "     ~   " );
+            System.out.println(Utils.toInfo("Депозит  ") + "|  Назад  |  Пополнить  |  Вывести  |" + Utils.toInfo("  Депозит"));
+            System.out.println("   ~     " + "|    0    |      1      |     2     |" + "     ~    \n");
 
-            int choice = Casino.whatToDoNext(2);
+            int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
                 case 0 -> {
                     return;
                 }
                 case 1 -> {
-                    System.out.print("Сумма пополнения: ");
-                    double amount = Casino.getScanner().nextDouble();
-                    player.deposit(amount);
-                    System.out.println(GREEN + "Баланс пополнен!" + RESET);
+                    int amount = Utils.nextInt("Сумма пополнения: ");
+                    if (player.deposit(amount)) {
+                        System.out.println(Utils.toSuccess("System: ") + "Баланс пополнен!");
+                    }
                 }
                 case 2 -> {
-                    System.out.print("Сумма вывода: ");
-                    double amount = Casino.getScanner().nextDouble();
+                    int amount = Utils.nextInt("Сумма вывода: ");
                     if (player.getBalance() >= amount) {
-                        player.withdraw(amount);
-                        System.out.println(GREEN + "Средства выведены!" + RESET);
+                        if (player.withdraw(amount)) System.out.println(Utils.toSuccess("System: ") + "Средства выведены!");
                     } else {
-                        System.out.println(RED + "Недостаточно средств!" + RESET);
+                        System.out.println(Utils.toError("System: ") + "Недостаточно средств!");
                     }
                 }
             }
