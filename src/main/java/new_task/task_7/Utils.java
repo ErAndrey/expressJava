@@ -19,7 +19,7 @@ public final class Utils {
 
     static {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        symbols.setGroupingSeparator(' '); // пробел как разделитель
+        symbols.setGroupingSeparator(' ');
         FORMATTER = new DecimalFormat("#,###", symbols);
     }
 
@@ -28,25 +28,14 @@ public final class Utils {
     }
 
     public static int nextInt(String inputMessage) {
-        // Сначала выводим приглашение один раз
         System.out.print(inputMessage);
-
         while (true) {
             try {
                 return SCANNER.nextInt();
             } catch (InputMismatchException e) {
-                // Затираем строку с ошибочным вводом
                 System.out.print("\r" + " ".repeat(50) + "\r");
-                // Выводим сообщение об ошибке
                 System.out.println(toError("System: ") + "Введите целое число");
-
-
-                // Затираем ошибку
-                //System.out.print("\r" + " ".repeat(50) + "\r");
-
-                // Заново выводим приглашение
                 System.out.print(inputMessage);
-
                 SCANNER.next();
             }
         }
