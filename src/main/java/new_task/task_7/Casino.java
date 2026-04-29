@@ -9,7 +9,7 @@ public final class Casino {
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final Random RANDOM = new Random();
 
-    private static final int MIN_BALANCE_FOR_PLAY = 100;
+    private static final int MIN_BALANCE_FOR_PLAY = 1000;
     private static final char CURRENCY = '₽';
     private static final String SPACE = "   ";
     private static final DecimalFormat FORMATTER;
@@ -24,6 +24,23 @@ public final class Casino {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
         symbols.setGroupingSeparator(' '); // пробел как разделитель
         FORMATTER = new DecimalFormat("#,###", symbols);
+    }
+
+    public static Scanner getScanner() {
+        return SCANNER;
+    }
+
+    public static int whatToDoNext(int maxActions) {
+        int action;
+
+        while (true) {
+            System.out.print(PURPLE + "Что делаем: " + RESET);
+            action = SCANNER.nextInt();
+            if (action >= 0 && action <= maxActions) break;
+            System.out.println("Выберите доступное действие: 0-" + maxActions);
+        }
+
+        return action;
     }
 
     private final Player player;
@@ -61,7 +78,7 @@ public final class Casino {
         }
 
         if (player.getBalance() < bet) {
-            System.out.println(RED + "Недостаточно средств! " + RESET + " Ваш баланс: " + formatCurrency(player.getBalance()));
+            System.out.println(RED + "Недостаточно средств! " + RESET + "Ваш баланс: " + formatCurrency(player.getBalance()));
             return -1;
         }
 
@@ -82,24 +99,11 @@ public final class Casino {
         return FORMATTER.format(amount) + " " + CURRENCY;
     }
 
-    private int whatToDoNext(int maxActions) {
-        int action;
-
-        while (true) {
-            System.out.print(PURPLE + "Что делаем: " + RESET);
-            action = SCANNER.nextInt();
-            if (action >= 0 && action <= maxActions) break;
-            System.out.println("Выберите доступное действие: 0-" + maxActions);
-        }
-
-        return action;
-    }
-
     private boolean askToContinue() throws InterruptedException {
         System.out.println(
                 """
                 Желаете продолжить?
-                0. Вернуться в меню
+                0. Назад к играм
                 1. Продолжить
                 """
         );
@@ -109,7 +113,7 @@ public final class Casino {
         if (choice == 1) return true;
 
 
-        System.out.print("Возвращаемся в меню");
+        System.out.print("Возвращаем вас на главную");
         for (int i = 1; i <= 3; i++) {
             Thread.sleep(1_000);
             System.out.print(".");
@@ -122,7 +126,7 @@ public final class Casino {
     }
 
     private void playEven() throws InterruptedException {
-        System.out.println(YELLOW + "Игра \"isEven\": " + RESET + "Угадайте, выбрав чет или нечет!\n");
+        System.out.println(YELLOW + "Evens: " + RESET + "Угадайте, выбрав четное или нечетное!\n");
 
         int selectNumber;
         do {
@@ -149,10 +153,11 @@ public final class Casino {
             Thread.sleep(250);
         }
 
+        Thread.sleep(250);
         System.out.print("\r" + " ".repeat(text.length() + 6) + "\r");
+        Thread.sleep(250);
 
         int random = RANDOM.nextInt(0, 37);
-        Thread.sleep(500);
 
         boolean playerWin;
 
@@ -195,7 +200,7 @@ public final class Casino {
     }
 
     private void playSlot() throws InterruptedException {
-        System.out.println(YELLOW + "Игра \"Slots\": " + RESET + "Чтобы крутануть слот, укажите ставку!\n");
+        System.out.println(YELLOW + "Slots: " + RESET + "Чтобы крутануть слот, укажите ставку!\n");
 
         int bet;
         do {
@@ -273,38 +278,28 @@ public final class Casino {
     }
 
     public void play() throws InterruptedException {
-        System.out.println("\nДобро пожаловать в казино Java, " + player.getName() + "! Приятного отдыха ;)");
-
         while (true) {
-            System.out.println(
-                    YELLOW +
-                    "\nМеню\n" +
-                    RESET +
-                    """
-                    0. Выйти
-                    1. Баланс
-                    2. Играть Slots
-                    3. Играть OddEven
-                    """
-            );
+            System.out.println(       "\n  ~    "         + "|    <    |   777   |   1/2   |" +          "    ~  "        );
+            System.out.println(YELLOW + "Азарт  " + RESET + "|  Выход  |  Slots  |  Evens  |" + YELLOW + "  Азарт" + RESET);
+            System.out.println(         "  ~    "         + "|    0    |    1    |    2    |" +          "    ~  \n"      );
 
-            int action = whatToDoNext(3);
+
+            int action = whatToDoNext(2);
 
             switch (action) {
                 case 0 -> {
                     System.out.println("До встречи, " + player.getName() + "! Ждем вас снова ;)");
                     return;
                 }
-                case 1 -> System.out.println(YELLOW + "Ваш баланс: " + RESET + formatCurrency(player.getBalance()));
-                case 2 -> playGameLoop("Slots", this::playSlot);
-                case 3 -> playGameLoop("OddEven", this::playEven);
+                case 1 -> playGameLoop("Slots", this::playSlot);
+                case 2 -> playGameLoop("Evens", this::playEven);
             }
         }
     }
 
     private void playGameLoop(String gameName, GameRunnable game) throws InterruptedException {
         if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
-            System.out.println("Для входа в игру " + gameName + " нужно минимум " + formatCurrency(MIN_BALANCE_FOR_PLAY));
+            System.out.println("Для входа в игру " + YELLOW + gameName + RESET + " нужно минимум " + formatCurrency(MIN_BALANCE_FOR_PLAY));
             return;
         }
 
@@ -313,8 +308,8 @@ public final class Casino {
             game.run();
 
             if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
-                System.out.println("\nВаш баланс: " + formatCurrency(player.getBalance()));
-                System.out.println("Баланс ниже минимального (" + formatCurrency(MIN_BALANCE_FOR_PLAY) + "). Возврат в меню...");
+                System.out.println(YELLOW + "\nВаш баланс: " + RESET + formatCurrency(player.getBalance()));
+                System.out.println("Баланс ниже минимального (" + formatCurrency(MIN_BALANCE_FOR_PLAY) + "). Возврат к играм...");
                 Thread.sleep(1_000);
                 break;
             }
