@@ -56,7 +56,7 @@ public final class Utils {
         while (true) {
             number = nextInt("Выберите число от " + from + " до " + to + ": ");
             if (number >= from && number <= to) break;
-            System.out.println("Нужно выбрать число в диапазоне от " + from + " до " + to);
+            System.out.println(toError("System: ") + "Нужно выбрать число в диапазоне от " + from + " до " + to);
         }
         return number;
     }

@@ -45,7 +45,7 @@ public final class Casino {
     public void play() throws InterruptedException {
         while (true) {
             System.out.println("\n  ~    " + "|    <    |   777   |   1/2   |" + "    ~  " );
-            System.out.println(Utils.toInfo("Азарт  ") + "|  Выход  |  Slots  |  Evens  |" + Utils.toInfo("Азарт  "));
+            System.out.println(Utils.toInfo("Азарт  ") + "|  Выход  |  Slots  |  Evens  |" + Utils.toInfo("  Азарт"));
             System.out.println("  ~    " + "|    0    |    1    |    2    |" + "    ~  \n");
 
             int action = Utils.whatToDoNext(2);
@@ -209,7 +209,7 @@ public final class Casino {
 
     private void playGameLoop(String gameName, GameRunnable game) throws InterruptedException {
         if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
-            System.out.println("Для входа в игру " + Utils.toInfo(gameName) + " нужно минимум " + Utils.formatCurrency(MIN_BALANCE_FOR_PLAY));
+            System.out.println(Utils.toError("System: ") + "Для входа в игру " + Utils.toInfo(gameName) + " нужно минимум " + Utils.formatCurrency(MIN_BALANCE_FOR_PLAY));
             return;
         }
 
@@ -219,7 +219,8 @@ public final class Casino {
 
             if (player.getBalance() < MIN_BALANCE_FOR_PLAY) {
                 System.out.println(Utils.toInfo("\nВаш баланс: ") + Utils.formatCurrency(player.getBalance()));
-                System.out.println("Депозит для игр ниже минимального (" + Utils.formatCurrency(MIN_BALANCE_FOR_PLAY) + "). Сворачиваем игру");
+                System.out.println(Utils.toError("System: ") + "Депозит для игр ниже минимального (" + Utils.formatCurrency(MIN_BALANCE_FOR_PLAY) + ").");
+                System.out.print("Сворачиваем игру");
                 Utils.dotAnimation();
                 break;
             }
