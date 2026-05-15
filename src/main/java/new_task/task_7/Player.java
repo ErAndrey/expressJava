@@ -4,31 +4,99 @@ public class Player {
     private final String name;
     private double balance;
 
+    //toDo повышение лимитов на снятие / вывод через почту + валидация лимитов
+    private String email;
+    private boolean isConfirmedAccount;
+    private int limitChangeBalance;
+
+    private int totalGames;
+    private int totalWins;
+    private int totalLose;
+    private int currentWins;
+    private int maxWins;
+
+    private double maxWinAmount;
+
+    private double allIncome;
+    private double allOutcome;
+    private double totalWinAmount;
+    private double totalLoseAmount;
+
     public Player(String name) {
         this.name = name;
-        this.balance = 0;
+        this.limitChangeBalance = 100_000;
     }
 
     public String getName() {return this.name;}
     public double getBalance() {return this.balance;}
 
-    public boolean deposit(double amount) {
+    public String getEmail(){
+        return this.email == null ? "Отсутствует" : this.email;
+    }
+    public void setEmail(String email) {this.email = email;}
+    public boolean isConfirmedAccount() {return this.isConfirmedAccount;}
+    public void setConfirmedAccount() {
+        this.isConfirmedAccount = true;
+        this.limitChangeBalance = 500_000;
+    }
+    public int getLimitChangeBalance() {return this.limitChangeBalance;}
+
+    public double getWinRate() {return this.totalWins * 100.0 / this.totalGames;}
+    public int getTotalGames() {return this.totalGames;}
+    public int getTotalWins() {return this.totalWins;}
+    public int getTotalLose() {return this.totalLose;}
+    public int getCurrentWins() {return this.currentWins;}
+    public int getMaxWins() {return this.maxWins;}
+
+    public double getMaxWinAmount() {return this.maxWinAmount;}
+
+    public double getAllIncome() {return this.allIncome;}
+    public double getAllOutcome() {return this.allOutcome;}
+    public double getTotalWinAmount() {return this.totalWinAmount;}
+    public double getTotalLoseAmount() {return this.totalLoseAmount;}
+
+    public void updateTotalWins() {this.totalWins++; this.totalGames++;}
+    public void updateTotalLose() {this.totalLose++; this.totalGames++;}
+    public void updateCurrentWins() {this.currentWins++;}
+    public void resetCurrentWins() {this.currentWins = 0;}
+    public void updateMaxWins(int count) {this.maxWins = count;}
+
+    public void updateMaxWinAmount(double value) {this.maxWinAmount = value;}
+
+    public void updateAllIncome(double value) {this.allIncome += value;}
+    public void updateAllOutcome(double value) {this.allOutcome += value;}
+    public void updateTotalWinAmount(double value) {this.totalWinAmount += value;}
+    public void updateTotalLoseAmount(double value) {this.totalLoseAmount += value;}
+
+    private String getMessageForLimitChangeBalance() {
+        String text = Utils.toError("System: ") + "Текущий лимит " + Utils.formatCurrency(limitChangeBalance);
+        return isConfirmedAccount ? text : text + ", вы можете повысить лимит в вашем профиле!";
+    }
+
+    public boolean deposit(double amount, WhoChangePlayerBalance who) {
         if (amount <= 0) {
             System.out.println(Utils.toError("System: ") + "Сумма пополнения должна быть положительной!");
+            return false;
+        }
+        if (who == WhoChangePlayerBalance.PLAYER && amount > limitChangeBalance) {
+            System.out.println(getMessageForLimitChangeBalance());
             return false;
         }
         this.balance += amount;
         return true;
     }
 
-    public boolean withdraw(double amount) {
+    public boolean withdraw(double amount, WhoChangePlayerBalance who) {
         if (amount <= 0) {
             System.out.println(Utils.toError("System: ") + "Сумма вывода должна быть положительной!");
             return false;
         }
-
         if (this.balance < amount) {
             System.out.println(Utils.toError("System: ") + "Недостаточно средств! Баланс: " + Utils.formatCurrency(this.balance));
+            return false;
+        }
+        if (who == WhoChangePlayerBalance.PLAYER && amount > limitChangeBalance) {
+            System.out.println(getMessageForLimitChangeBalance());
             return false;
         }
 

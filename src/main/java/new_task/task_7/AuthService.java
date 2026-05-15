@@ -10,9 +10,7 @@ public class AuthService {
 
     public void start() throws InterruptedException {
         while (true) {
-            System.out.println("\n     ~       " + "|    <    |       +       |    >    |" + "       ~     ");
-            System.out.println(Utils.toInfo("Авторизация  ") + "|  Выход  |  Регистрация  |  Войти  |" + Utils.toInfo("  Авторизация"));
-            System.out.println("     ~       " + "|    0    |       1       |    2    |" +"       ~    \n");
+            Utils.printActionPanel("start");
 
             int choice = Utils.whatToDoNext(2);
 
@@ -28,10 +26,8 @@ public class AuthService {
     }
 
     private void login() throws InterruptedException {
-        System.out.print("Логин: ");
-        String username = Utils.next();
-        System.out.print("Пароль: ");
-        String password = Utils.next();
+        String username = Utils.next("Логин: ");
+        String password = Utils.next("Пароль: ");
 
         Optional<User> userOpt = findUser(username, password);
 
@@ -51,28 +47,25 @@ public class AuthService {
     }
 
     private void register() throws InterruptedException {
-        System.out.print("Придумайте логин: ");
-        String username = Utils.next();
+        String username = Utils.next("Придумайте логин: ");
 
         if (users.containsKey(username)) {
             System.out.println(Utils.toError("System: ") + "Пользователь с таким логином уже существует!");
             return;
         }
 
-        System.out.print("Придумайте пароль: ");
-        String password = Utils.next();
+        String password = Utils.next("Придумайте пароль: ");
 
         User newUser = new User(username, password);
         users.put(username, newUser);
         currentUser = newUser;
 
-        System.out.println(Utils.toSuccess("System: ") + "Регистрация успешна!\n");
+        System.out.print(Utils.toSuccess("System: ") + "Регистрация успешна!\n");
         createPlayerProfile();
     }
 
     private void createPlayerProfile() throws InterruptedException {
-        System.out.print("Введите имя игрока: ");
-        String playerName = Utils.next();
+        String playerName = Utils.next("Введите имя игрока: ");
 
         Player newPlayer = new Player(playerName);
         currentUser.setPlayer(newPlayer);
@@ -83,52 +76,112 @@ public class AuthService {
         menu(newPlayer);
     }
 
+    private void confirmPlayerAccount(Player player) {
+        System.out.println(Utils.toInfo("System: ") + "Чтобы подтвердить аккаунт, укажите ваш Email");
+        while (true) {
+            String email = Utils.next("Ваша почта: ");
+            if (Utils.validateEmail(email)) {
+                player.setEmail(email);
+                player.setConfirmedAccount();
+                System.out.println(Utils.toSuccess("System: ") + "Профиль подтвержден, лимиты увеличены!");
+                return;
+            }
+            System.out.println(Utils.toError("System: ") + "Почта \"" + email + "\" некорректна!");
+        }
+    }
+
     private void menu(Player player) throws InterruptedException {
-        Casino casino = new Casino(player, 100_000_000);
+        Casino casino = new Casino(player, 1_000_000_000);
 
         while (true) {
-            System.out.println("\n   ~     " + "|    <    |     ₽     |    >    |" +"     ~    ");
-            System.out.println(Utils.toInfo("Главная  ") + "|  Выход  |  Депозит  |  Азарт  |" + Utils.toInfo("  Главная "));
-            System.out.println("   ~     " + "|    0    |     1     |    2    |" + "     ~    \n");
+            System.out.println(Utils.toAccent("\nSystem: ") + "Баланс казино " + Utils.formatCurrency(casino.getBalance()));
 
-            int choice = Utils.whatToDoNext(2);
+            Utils.printActionPanel("menu");
+
+            int choice = Utils.whatToDoNext(3);
 
             switch (choice) {
                 case 0 -> {
-                    System.out.println("Возвращаемся к авторизации");
+                    System.out.print("Возвращаемся к авторизации");
                     Utils.dotAnimation();
                     return;
                 }
-                case 1 -> balance(player);
-                case 2 -> casino.play();
+                case 1 -> profile(player);
+                case 2 -> balance(player, casino);
+                case 3 -> casino.play();
             }
         }
     }
 
-    private void balance(Player player) throws InterruptedException {
+    private void profile(Player player) throws InterruptedException {
+        while (true) {
+            boolean isConfirmedAccount = player.isConfirmedAccount();
+            String isConfirmedText = isConfirmedAccount ? "Да" : "Нет";
+
+            if (isConfirmedAccount) {
+                Utils.printActionPanel("confirmedProfile");
+            } else {
+                Utils.printActionPanel("unconfirmedProfile");
+                System.out.println(Utils.toError("System: ") + "Лимиты на пополнение и снятие снижены! Подтвердите аккаунт для их увеличения\n");
+            }
+
+            System.out.println("Имя: " + player.getName());
+            System.out.println("Почта: " + player.getEmail());
+            System.out.println("Подтвержден: " + isConfirmedText);
+            System.out.println("Лимит на депозит: " + Utils.formatCurrency(player.getLimitChangeBalance()));
+
+            if (player.getTotalGames() != 0) {
+                System.out.println("\nПроцент побед         " + player.getWinRate() + "%");
+                System.out.println("Количество выигрышей  " + player.getTotalWins());
+                System.out.println("Количество проигрышей " + player.getTotalLose());
+                System.out.println("Лучшая серия побед    " + player.getMaxWins());
+                System.out.println("Текущая серия побед   " + player.getCurrentWins());
+                System.out.println("\nМаксимальный выигрыш  " + Utils.formatCurrency(player.getMaxWinAmount()));
+                System.out.println("Сумма выигрышей       " + Utils.formatCurrency(player.getTotalWinAmount()));
+                System.out.println("Сумма проигрышей      " + Utils.formatCurrency(player.getTotalLoseAmount()));
+            }
+
+            System.out.println("\nСумма пополнений      " + Utils.formatCurrency(player.getAllIncome()));
+            System.out.println("Сумма выводов         " + Utils.formatCurrency(player.getAllOutcome()));
+            System.out.println("Текущий баланс        " + Utils.formatCurrency(player.getBalance()) + "\n");
+
+            int choice = isConfirmedAccount ? Utils.whatToDoNext(0) : Utils.whatToDoNext(1);
+
+            switch (choice) {
+                case 0 -> { return; }
+                case 1 -> confirmPlayerAccount(player);
+            }
+        }
+    }
+
+    private void balance(Player player, Casino casino) throws InterruptedException {
         while (true) {
             System.out.println(Utils.toInfo("\nВаш баланс: ") + Utils.formatCurrency(player.getBalance()));
 
-            System.out.println("\n   ~     " + "|    <    |      ₽      |     >     |" + "     ~   " );
-            System.out.println(Utils.toInfo("Депозит  ") + "|  Назад  |  Пополнить  |  Вывести  |" + Utils.toInfo("  Депозит"));
-            System.out.println("   ~     " + "|    0    |      1      |     2     |" + "     ~    \n");
+            Utils.printActionPanel("balance");
 
             int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
-                case 0 -> {
-                    return;
-                }
+                case 0 -> { return; }
                 case 1 -> {
                     int amount = Utils.nextInt("Сумма пополнения: ");
-                    if (player.deposit(amount)) {
-                        System.out.println(Utils.toSuccess("System: ") + "Баланс пополнен!");
+                    if (player.deposit(amount, WhoChangePlayerBalance.PLAYER)) {
+                        player.updateAllIncome(amount);
+                        System.out.println(Utils.toSuccess("System: ") + "Пополнение " + Utils.formatCurrency(amount));
                     }
                 }
                 case 2 -> {
+                    double commission = Casino.COMMISSION_FOR_WITHDRAW;
+                    System.out.println(Utils.toInfo("System: ") + "Комиссия на вывод - " + commission + "%");
                     int amount = Utils.nextInt("Сумма вывода: ");
                     if (player.getBalance() >= amount) {
-                        if (player.withdraw(amount)) System.out.println(Utils.toSuccess("System: ") + "Средства выведены!");
+                        if (player.withdraw(amount, WhoChangePlayerBalance.PLAYER)) {
+                            double withdraw = amount * (1 - commission / 100);
+                            casino.changeBalance(amount * commission / 100);
+                            player.updateAllOutcome(withdraw);
+                            System.out.println(Utils.toSuccess("System: ") + "Вывод " + Utils.formatCurrency(withdraw));
+                        }
                     } else {
                         System.out.println(Utils.toError("System: ") + "Недостаточно средств!");
                     }
