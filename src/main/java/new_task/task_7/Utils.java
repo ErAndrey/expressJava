@@ -28,7 +28,7 @@ public final class Utils {
         symbols.setGroupingSeparator(' ');
         symbols.setDecimalSeparator(',');
         CURRENCY_INT_FORMATTER = new DecimalFormat("#,###", symbols);
-        CURRENCY_DOUBLE_FORMATTER = new DecimalFormat("#,###.00", symbols);
+        CURRENCY_DOUBLE_FORMATTER = new DecimalFormat("#,##0.00", symbols);
     }
 
     public static boolean validateEmail(String email) {
@@ -101,11 +101,13 @@ public final class Utils {
         """);
         int choice = whatToDoNext(1);
         if (choice == 1) return true;
-        System.out.print("Возвращаемся"); dotAnimation();
+        dotAnimation("Возвращаемся");
         return false;
     }
 
-    public static void dotAnimation() throws InterruptedException {
+    public static void dotAnimation(String text) throws InterruptedException {
+        System.out.print(text);
+        Thread.sleep(150);
         for (int i = 1; i <= 3; i++) {
             Thread.sleep(500);
             System.out.print(".");
@@ -232,11 +234,10 @@ public final class Utils {
                 System.out.println("   ~     " + "|    0    |      1      |     2     |" + "     ~    \n");
             }
             case "play" -> {
-                System.out.println("\n  ~    " + "|    <    |   777   |   1/2   |    %    |   >/<   |   ...   |" + "    ~  ");
-                System.out.println(Utils.toInfo("Азарт  ") + "|  Назад  |  Slots  |  Evens  |  Flips  |  Hg/Lw  |  Words  |" + Utils.toInfo("  Азарт"));
-                System.out.println("  ~    " + "|    0    |    1    |    2    |    3    |    4    |    5    |" + "    ~  \n");
+                System.out.println("\n  ~    " + "|    <    |   777   |   1/2   |    %    |   >/<   |   ...   |   21!   |" + "    ~  ");
+                System.out.println(Utils.toInfo("Азарт  ") + "|  Назад  |  Slots  |  Evens  |  Flips  |  Hg/Lw  |  Words  |  BJack  |" + Utils.toInfo("  Азарт"));
+                System.out.println("  ~    " + "|    0    |    1    |    2    |    3    |    4    |    5    |    6    |" + "    ~  \n");
             }
         }
     }
-
 }

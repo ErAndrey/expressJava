@@ -4,7 +4,6 @@ public class Player {
     private final String name;
     private double balance;
 
-    //toDo повышение лимитов на снятие / вывод через почту + валидация лимитов
     private String email;
     private boolean isConfirmedAccount;
     private int limitChangeBalance;
@@ -41,7 +40,10 @@ public class Player {
     }
     public int getLimitChangeBalance() {return this.limitChangeBalance;}
 
-    public double getWinRate() {return this.totalWins * 100.0 / this.totalGames;}
+    public double getWinRate() {
+        double winRate = (this.totalWins * 100.0) / this.totalGames;
+        return Math.round(winRate * 100.0) / 100.0;
+    }
     public int getTotalGames() {return this.totalGames;}
     public int getTotalWins() {return this.totalWins;}
     public int getTotalLose() {return this.totalLose;}
@@ -75,7 +77,7 @@ public class Player {
 
     public boolean deposit(double amount, WhoChangePlayerBalance who) {
         if (amount <= 0) {
-            System.out.println(Utils.toError("System: ") + "Сумма пополнения должна быть положительной!");
+            System.out.println(Utils.toError("System: ") + "Сумма должна быть положительной, больше 0!");
             return false;
         }
         if (who == WhoChangePlayerBalance.PLAYER && amount > limitChangeBalance) {
@@ -88,7 +90,7 @@ public class Player {
 
     public boolean withdraw(double amount, WhoChangePlayerBalance who) {
         if (amount <= 0) {
-            System.out.println(Utils.toError("System: ") + "Сумма вывода должна быть положительной!");
+            System.out.println(Utils.toError("System: ") + "Сумма должна быть положительной, больше 0!");
             return false;
         }
         if (this.balance < amount) {

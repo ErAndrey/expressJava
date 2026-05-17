@@ -91,10 +91,10 @@ public class AuthService {
     }
 
     private void menu(Player player) throws InterruptedException {
-        Casino casino = new Casino(player, 1_000_000_000);
+        Casino casino = new Casino(player, 2_000_000_000);
 
         while (true) {
-            System.out.println(Utils.toAccent("\nSystem: ") + "Баланс казино " + Utils.formatCurrency(casino.getBalance()));
+            //System.out.println(Utils.toAccent("\nSystem: ") + "Баланс казино " + Utils.formatCurrency(casino.getBalance()));
 
             Utils.printActionPanel("menu");
 
@@ -102,8 +102,7 @@ public class AuthService {
 
             switch (choice) {
                 case 0 -> {
-                    System.out.print("Возвращаемся к авторизации");
-                    Utils.dotAnimation();
+                    Utils.dotAnimation("Возвращаемся к авторизации");
                     return;
                 }
                 case 1 -> profile(player);
@@ -148,7 +147,9 @@ public class AuthService {
             int choice = isConfirmedAccount ? Utils.whatToDoNext(0) : Utils.whatToDoNext(1);
 
             switch (choice) {
-                case 0 -> { return; }
+                case 0 -> {
+                    return;
+                }
                 case 1 -> confirmPlayerAccount(player);
             }
         }
@@ -156,14 +157,16 @@ public class AuthService {
 
     private void balance(Player player, Casino casino) throws InterruptedException {
         while (true) {
-            System.out.println(Utils.toInfo("\nВаш баланс: ") + Utils.formatCurrency(player.getBalance()));
+            System.out.println(Utils.toInfo("\nSystem: ") + "Ваш баланс " + Utils.formatCurrency(player.getBalance()));
 
             Utils.printActionPanel("balance");
 
             int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
-                case 0 -> { return; }
+                case 0 -> {
+                    return;
+                }
                 case 1 -> {
                     int amount = Utils.nextInt("Сумма пополнения: ");
                     if (player.deposit(amount, WhoChangePlayerBalance.PLAYER)) {
