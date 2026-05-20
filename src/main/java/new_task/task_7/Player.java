@@ -6,7 +6,7 @@ public class Player {
 
     private String email;
     private boolean isConfirmedAccount;
-    private int limitChangeBalance;
+    private int limitChangeBalance; // toDo разбить на пополнение и вывод
 
     private int totalGames;
     private int totalWins;

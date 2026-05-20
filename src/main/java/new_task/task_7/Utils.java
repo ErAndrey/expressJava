@@ -206,37 +206,44 @@ public final class Utils {
         return " ".repeat(leftPadding) + string + " ".repeat(rightPadding);
     }
 
-    public static void printActionPanel(String place) {
-        switch (place) {
-            case "start" -> {
+    //toDo перейти на toCenter()
+    public static void printActionPanel(ActionPanel actionPanel) {
+        switch (actionPanel) {
+            case START -> {
                 System.out.println("\n     ~       " + "|    <    |       +       |    >    |" + "       ~     ");
                 System.out.println(Utils.toInfo("Авторизация  ") + "|  Выход  |  Регистрация  |  Войти  |" + Utils.toInfo("  Авторизация"));
                 System.out.println("     ~       " + "|    0    |       1       |    2    |" +"       ~    \n");
             }
-            case "menu" -> {
+            case MENU -> {
                 System.out.println("\n   ~     " + "|    <    |     #     |     ₽     |    >    |" +"     ~    ");
                 System.out.println(Utils.toInfo("Главная  ") + "|  Выход  |  Профиль  |  Депозит  |  Азарт  |" + Utils.toInfo("  Главная "));
                 System.out.println("   ~     " + "|    0    |     1     |     2     |    3    |" + "     ~    \n");
             }
-            case "confirmedProfile" -> {
+            case CONFIRMED_PROFILE -> {
                 System.out.println("\n   ~     " + "|    <    |" + "     ~    ");
                 System.out.println(Utils.toInfo("Профиль  ") + "|  Назад  |" + Utils.toInfo("  Профиль "));
                 System.out.println("   ~     " + "|    0    |" + "     ~    \n");
             }
-            case "unconfirmedProfile" -> {
+            case UNCONFIRMED_PROFILE -> {
                 System.out.println("\n   ~     " + "|    <    |       ^       |" + "     ~    ");
                 System.out.println(Utils.toInfo("Профиль  ") + "|  Назад  |  Подтвердить  |" + Utils.toInfo("  Профиль "));
                 System.out.println("   ~     " + "|    0    |       1       |" + "     ~    \n");
             }
-            case "balance" -> {
+            case BALANCE -> {
                 System.out.println("\n   ~     " + "|    <    |      ₽      |     >     |" + "     ~   " );
                 System.out.println(Utils.toInfo("Депозит  ") + "|  Назад  |  Пополнить  |  Вывести  |" + Utils.toInfo("  Депозит"));
                 System.out.println("   ~     " + "|    0    |      1      |     2     |" + "     ~    \n");
             }
-            case "play" -> {
+            case PLAY -> {
                 System.out.println("\n  ~    " + "|    <    |   777   |   1/2   |    %    |   >/<   |   ...   |   21!   |" + "    ~  ");
                 System.out.println(Utils.toInfo("Азарт  ") + "|  Назад  |  Slots  |  Evens  |  Flips  |  Hg/Lw  |  Words  |  BJack  |" + Utils.toInfo("  Азарт"));
                 System.out.println("  ~    " + "|    0    |    1    |    2    |    3    |    4    |    5    |    6    |" + "    ~  \n");
+            }
+            case ROULETTE -> {
+                System.out.println("\n|    <    | 1 число | 2 числа | 3 числа | 4 числа | 6 чисел | На цвет |  Чет/не |");
+                System.out.println("|  Назад  |  Прямо  |  Сплит  |  Стрит  |  Уголл  |  Линия  |  Color  |  Evens  |");
+                System.out.println("|    -    |   x35   |   x17   |   x11   |   x8    |   x5    |   x2    |   x2    |");
+                System.out.println("|    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |\n");
             }
         }
     }

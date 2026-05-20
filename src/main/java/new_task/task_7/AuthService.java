@@ -10,7 +10,7 @@ public class AuthService {
 
     public void start() throws InterruptedException {
         while (true) {
-            Utils.printActionPanel("start");
+            Utils.printActionPanel(ActionPanel.START);
 
             int choice = Utils.whatToDoNext(2);
 
@@ -90,13 +90,14 @@ public class AuthService {
         }
     }
 
+    //toDo Добавить бонусы, которые сетит казиныч при лузах
     private void menu(Player player) throws InterruptedException {
         Casino casino = new Casino(player, 2_000_000_000);
 
         while (true) {
             //System.out.println(Utils.toAccent("\nSystem: ") + "Баланс казино " + Utils.formatCurrency(casino.getBalance()));
 
-            Utils.printActionPanel("menu");
+            Utils.printActionPanel(ActionPanel.MENU);
 
             int choice = Utils.whatToDoNext(3);
 
@@ -112,15 +113,16 @@ public class AuthService {
         }
     }
 
+    //toDo Удалить профиль
     private void profile(Player player) throws InterruptedException {
         while (true) {
             boolean isConfirmedAccount = player.isConfirmedAccount();
             String isConfirmedText = isConfirmedAccount ? "Да" : "Нет";
 
             if (isConfirmedAccount) {
-                Utils.printActionPanel("confirmedProfile");
+                Utils.printActionPanel(ActionPanel.CONFIRMED_PROFILE);
             } else {
-                Utils.printActionPanel("unconfirmedProfile");
+                Utils.printActionPanel(ActionPanel.UNCONFIRMED_PROFILE);
                 System.out.println(Utils.toError("System: ") + "Лимиты на пополнение и снятие снижены! Подтвердите аккаунт для их увеличения\n");
             }
 
@@ -159,7 +161,7 @@ public class AuthService {
         while (true) {
             System.out.println(Utils.toInfo("\nSystem: ") + "Ваш баланс " + Utils.formatCurrency(player.getBalance()));
 
-            Utils.printActionPanel("balance");
+            Utils.printActionPanel(ActionPanel.BALANCE);
 
             int choice = Utils.whatToDoNext(2);
 

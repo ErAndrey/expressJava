@@ -5,17 +5,18 @@ import java.util.*;
 public final class Casino {
     private static final Random RANDOM = new Random();
 
-    public static final double COMMISSION_FOR_WITHDRAW = 1.5;
+    public static final double COMMISSION_FOR_WITHDRAW = 4.90; // В %
     private static final int MIN_BALANCE_FOR_PLAY = 1000;
 
     //toDo playWords
     private int[] scorePlayers = new int[2];
 
-    private final String GAME_NAME_2 = "Odds or Evens";
-    private final String GAME_NAME_3 = "Flip coins";
-    private final String GAME_NAME_4 = "Higher or Lower";
-    private final String GAME_NAME_5 = "Guess the Words";
-    private final String GAME_NAME_6 = "Blackjack 21";
+    private final String GAME_NAME_ODDS_OR_EVEN = "Odds or Evens";
+    private final String GAME_NAME_FLIP_COIN = "Flip coins";
+    private final String GAME_NAME_HIGHER_PR_LOWER = "Higher or Lower";
+    private final String GAME_NAME_GUESS_THE_WORDS = "Guess the Words";
+    private final String GAME_NAME_BLACKJACK = "Blackjack 21";
+    private final String GAME_NAME_ROULETTE = "European Roulette";
 
     private final Player player;
     private double balance;
@@ -36,27 +37,7 @@ public final class Casino {
         this.balance += amount;
     }
 
-    private int selectBet() {
-        int bet;
-        while (true) {
-            bet = Utils.nextInt("Укажите сумму ставки: ");
-            if (bet < MIN_BALANCE_FOR_PLAY / 2) {
-                System.out.println(Utils.toError("System: ") + "Минимальная сумма ставки " + Utils.formatCurrency(MIN_BALANCE_FOR_PLAY / 2));
-                continue;
-            }
-            if (this.balance < bet * 2) {
-                System.out.println(Utils.toError("System: ") + "Извините, мы не можем принять такую ставку. Максимальная ставка: " + Utils.formatCurrency((int) (this.balance / 2)));
-                continue;
-            }
-            if (player.getBalance() < bet) {
-                System.out.println(Utils.toError("System: ") + "Недостаточно средств! Ваш баланс: " + Utils.formatCurrency(player.getBalance()));
-                continue;
-            }
-            return bet;
-        }
-    }
-
-    private int selectBetV2(double maxMultiplier) {
+    private int selectBet(double maxMultiplier) {
         int bet;
         int minBet = MIN_BALANCE_FOR_PLAY / 2;
         int maxBet = (int) (this.balance / maxMultiplier);
@@ -103,13 +84,14 @@ public final class Casino {
             System.out.print(Utils.toInfo("System: ") + "Зачисление выигрыша. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toSuccess(" -> "));
             this.player.deposit(winAmount, WhoChangePlayerBalance.CASINO);
             this.balance -= winAmount;
-            updatePlayerStatistic(true, winAmount - betAmount);
             System.out.println(Utils.formatCurrency(this.player.getBalance()));
+            updatePlayerStatistic(true, winAmount - betAmount);
         } else {
             System.out.println(Utils.toError("Проигрыш: ") + Utils.formatCurrency(betAmount));
             System.out.println(Utils.toInfo("System: ") + "Ваш баланс " + Utils.formatCurrency(this.player.getBalance()));
             updatePlayerStatistic(false, betAmount);
         }
+        System.out.println();
     }
 
     private void updatePlayerStatistic(boolean isWin, double amount) {
@@ -128,7 +110,7 @@ public final class Casino {
 
     public void play() throws InterruptedException {
         while (true) {
-            Utils.printActionPanel("play");
+            Utils.printActionPanel(ActionPanel.PLAY);
 
             int action = Utils.whatToDoNext(6);
 
@@ -152,11 +134,11 @@ public final class Casino {
                     return;
                 }
                 case 1 -> selectSlots();
-                case 2 -> playGameLoop(this.GAME_NAME_2, this::playEven);
-                case 3 -> playGameLoop(this.GAME_NAME_3, this::playCoinFlip);
-                case 4 -> playGameLoop(this.GAME_NAME_4, this::playHigherOrLower);
-                case 5 -> playGameLoop(this.GAME_NAME_5, this::playWords);
-                case 6 -> playGameLoop(this.GAME_NAME_6, this::playBlackjack);
+                case 2 -> playGameLoop(this.GAME_NAME_ODDS_OR_EVEN, this::playEven);
+                case 3 -> playGameLoop(this.GAME_NAME_FLIP_COIN, this::playCoinFlip);
+                case 4 -> playGameLoop(this.GAME_NAME_HIGHER_PR_LOWER, this::playHigherOrLower);
+                case 5 -> playGameLoop(this.GAME_NAME_GUESS_THE_WORDS, this::playWords);
+                case 6 -> playGameLoop(this.GAME_NAME_BLACKJACK, this::playBlackjack);
             }
         }
     }
@@ -579,7 +561,7 @@ public final class Casino {
             }
         };
 
-        int betAmount = selectBetV2(maxMultiplier);
+        int betAmount = selectBet(maxMultiplier);
         applyBet(betAmount);
 
         System.out.println(Utils.toInfo("\nВаша ставка: ") + Utils.formatCurrency(betAmount) + "\n");
@@ -589,18 +571,16 @@ public final class Casino {
         boolean isWin = winAmount > 0;
 
         resolveBet(isWin, betAmount, winAmount);
-        System.out.println();
     }
 
     private void playEven() throws InterruptedException {
-        System.out.println(Utils.toInfo(this.GAME_NAME_2 + ": ") + "Угадайте, выбрав четное или нечетное!\n");
+        System.out.println(Utils.toInfo(this.GAME_NAME_ODDS_OR_EVEN + ": ") + "Угадайте, выбрав четное или нечетное!\n");
 
         int selectNumber = Utils.selectNumber(1, 2);
         String parity = selectNumber % 2 == 0 ? "Четное" : "Нечетное";
 
-        double multiplier = 2.0;
-        //int betAmount = selectBet();
-        int betAmount = selectBetV2(multiplier);
+        double multiplier = Multipliers.ODDS_OR_EVEN_MULTIPLIER;
+        int betAmount = selectBet(multiplier);
         applyBet(betAmount);
 
         System.out.println(Utils.toInfo("\nВаша ставка: ") + parity + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("х" + multiplier) + "\n");
@@ -628,40 +608,35 @@ public final class Casino {
         }
 
         resolveBet(isWin, betAmount, winAmount);
-        System.out.println();
     }
 
     //toDo
     private void playRoulette() throws InterruptedException {
         while (true) {
-            System.out.println(Utils.toInfo(this.GAME_NAME_6 + ": ") + "Выбери ставку по желанию!");
+            System.out.println(Utils.toInfo(this.GAME_NAME_ROULETTE + ": ") + "Выбери ставку по желанию!");
 
-            System.out.println("\n|    <    | 1 число | 2 числа | 3 числа | 4 числа | 6 чисел | На цвет |  Чет/не |");
-            System.out.println("|  Назад  |  Прямо  |  Сплит  |  Стрит  |  Уголл  |  Линия  |  Color  |  Evens  |");
-            System.out.println("|    -    |   x35   |   x17   |   x11   |   x8    |   x5    |   x2    |   x2    |");
-            System.out.println("|    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |\n");
+            Utils.printActionPanel(ActionPanel.ROULETTE);
 
             int choice = Utils.whatToDoNext(7);
 
             switch (choice) {
                 case 0 -> play();
-                case 7 -> this.playGameLoop(this.GAME_NAME_2, this::playEven);
+                case 7 -> this.playGameLoop(this.GAME_NAME_ODDS_OR_EVEN, this::playEven);
             }
         }
 
     }
 
     private void playCoinFlip() throws InterruptedException {
-        System.out.println(Utils.toInfo(this.GAME_NAME_3 + ": ") + "Орёл или Решка? Угадай сторону монетки!\n");
+        System.out.println(Utils.toInfo(this.GAME_NAME_FLIP_COIN + ": ") + "Орёл или Решка? Угадай сторону монетки!\n");
 
         System.out.println("1. Орёл");
         System.out.println("2. Решка");
         int playerChoice = Utils.selectNumber(1, 2);
         String playerSide = playerChoice == 1 ? "Орёл" : "Решка";
 
-        double multiplier = 2.0;
-        //int betAmount = selectBet();
-        int betAmount = selectBetV2(multiplier);
+        double multiplier = Multipliers.FLIP_COIN_MULTIPLIER;
+        int betAmount = selectBet(multiplier);
         applyBet(betAmount);
 
         System.out.println(Utils.toInfo("\nВаша ставка: ") + playerSide + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("х" + multiplier) + "\n");
@@ -681,25 +656,10 @@ public final class Casino {
         }
 
         resolveBet(isWin, betAmount, winAmount);
-        System.out.println();
     }
-
-    private double getMultiplierForHigherOrLower(int currentNumber, boolean betOnHigher) {
-        return switch (currentNumber) {
-            case 2 -> betOnHigher ? 1.2 : 9.0;
-            case 3 -> betOnHigher ? 1.35 : 4.5;
-            case 4 -> betOnHigher ? 1.55 : 3.0;
-            case 5 -> betOnHigher ? 1.85 : 2.3;
-            case 6 -> betOnHigher ? 2.3 : 1.85;
-            case 7 -> betOnHigher ? 3.0 : 1.55;
-            case 8 -> betOnHigher ? 4.5 : 1.35;
-            case 9 -> betOnHigher ? 9.0 : 1.2;
-            default -> 1.0;
-        };
-    }
-
+    
     private void playHigherOrLower() throws InterruptedException {
-        System.out.println(Utils.toInfo(this.GAME_NAME_4 + ": ") + "Угадай, следующее число больше или меньше!\n");
+        System.out.println(Utils.toInfo(this.GAME_NAME_HIGHER_PR_LOWER + ": ") + "Угадай, следующее число больше или меньше!\n");
 
         int currentNumber = RANDOM.nextInt(2, 10);
         System.out.println(Utils.toAccent("System: ") + "Текущее число " + Utils.toAccent(currentNumber + "\n"));
@@ -711,9 +671,8 @@ public final class Casino {
         boolean betOnHigher = Utils.selectNumber(1, 2) == 1;
         String choiceName = betOnHigher ? "Больше" : "Меньше";
 
-        double multiplier = getMultiplierForHigherOrLower(currentNumber, betOnHigher);
-        //int betAmount = selectBet();
-        int betAmount = selectBetV2(multiplier);
+        double multiplier = Multipliers.getMultiplierForHigherOrLower(currentNumber, betOnHigher);
+        int betAmount = selectBet(multiplier);
         applyBet(betAmount);
 
         System.out.println(Utils.toInfo("\nВаша ставка: ") + choiceName + " " + currentNumber + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("x" + multiplier) + "\n");
@@ -738,11 +697,10 @@ public final class Casino {
         }
 
         resolveBet(isWin, betAmount, winAmount);
-        System.out.println();
     }
 
     private void playWords() throws InterruptedException {
-        System.out.println(Utils.toInfo(this.GAME_NAME_5 + ": ") + "Дается первая и последняя буква, угадывайте слова быстрее других!\n");
+        System.out.println(Utils.toInfo(this.GAME_NAME_GUESS_THE_WORDS + ": ") + "Дается первая и последняя буква, угадывайте слова быстрее других!\n");
 
         //int countPlayers = Utils.nextInt("Выберите количество игроков: ");
         //int[] scorePlayers = new int[countPlayers];
@@ -789,9 +747,9 @@ public final class Casino {
     }
 
     private void playBlackjack() throws InterruptedException {
-        System.out.println(Utils.toInfo("Blackjack 21: ") + "Набери 21 очко, но не больше!\n");
+        System.out.println(Utils.toInfo(this.GAME_NAME_BLACKJACK + ": ") + "Набери 21 очко, но не больше!\n");
 
-        int betAmount = selectBetV2(2.5);
+        int betAmount = selectBet(Multipliers.getMultiplierForBlackjack(true, true));
         applyBet(betAmount);
 
         Utils.dotAnimation("\nПеремешиваем колоду");
@@ -814,7 +772,7 @@ public final class Casino {
 
         // Проверка на Blackjack у игрока
         if (getHandValue(playerHand) == 21 && playerHand.size() == 2) {
-            showHands(playerHand, dealerHand, false);
+            showHands(playerHand, dealerHand, true);
 
             // Проверяем Blackjack у дилера
             if (getHandValue(dealerHand) == 21 && dealerHand.size() == 2) {
@@ -894,16 +852,20 @@ public final class Casino {
         }
 
         // Ход дилера (если игрок не перебрал)
+        //toDo 
+        // 1. надо чтоб дилер видел карты соперника, если у того 13, диллер добирает пока не >13
+        // 2. или придумать так, что диллер не знает своей не раскрытой карты и по мат ожиданию берет или не берет
         if (getHandValue(playerHand) <= 21 && !isWin) {
             System.out.println(Utils.toInfo("\nХод дилера:"));
             Utils.dotAnimation("Смотрит карты и принимает решение");
 
-            if (getHandValue(dealerHand) >= 17) Utils.dotAnimation("Дилер оставляет руку");
-
             while (getHandValue(dealerHand) < 17) {
                 Utils.dotAnimation("Дилер берет карту");
                 dealerHand.add(drawCard(deck));
+                System.out.println(getDealerHandWithFirstHidden(dealerHand));
             }
+
+            Utils.dotAnimation("Дилер оставляет руку");
 
             showHands(playerHand, dealerHand, true);
 
@@ -925,10 +887,8 @@ public final class Casino {
             }
         }
 
-        double winAmount = isBlackjack ? betAmount * 2.57 : betAmount * 2.01;
+        double winAmount = Multipliers.getMultiplierForBlackjack(isBlackjack, isDoubleDown) * betAmount;
         resolveBet(isWin, betAmount, winAmount);
-
-        System.out.println();
     }
 
     private List<Card> createDeck(int decksCount) {
@@ -967,8 +927,22 @@ public final class Casino {
         if (revealDealer) {
             System.out.println(Utils.toAccent("Карты дилера: ") + dealerHand + " = " + getHandValue(dealerHand) + "\n");
         } else {
-            System.out.println(Utils.toAccent("Карты дилера: ") + "[" + dealerHand.getFirst() + ", ?]");
+            System.out.println(Utils.toAccent("Карты дилера: ") + getDealerHandWithFirstHidden(dealerHand));
         }
+    }
+
+    private String getDealerHandWithFirstHidden(List<Card> dealerHand) {
+        StringBuilder hiddenHand = new StringBuilder("[?");
+
+        List<Card> dealerHandWithFirstHidden = dealerHand.stream()
+                .skip(1)
+                .toList();
+
+        for (Card card : dealerHandWithFirstHidden) {
+            hiddenHand.append(", ").append(card);
+        }
+
+        return hiddenHand.append("]").toString();
     }
 
     private void playGameLoop(String gameName, GameRunnable game) throws InterruptedException {

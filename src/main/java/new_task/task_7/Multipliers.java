@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Multipliers {
-    public static final double REDUCE_MULTIPLIER_FOR_SLOTS_GAME = 0.8;
+    public static final double REDUCE_MULTIPLIER_FOR_SLOTS_GAME = 20.0; // В %
     private static final Map<String, Double> HONEST_SLOTS_MULTIPLIERS = Map.ofEntries(
 
             //toDo КФ последовательности считать по "Не чистым" шансам, хоть и доступные варианты берутся по "Чистым"
@@ -47,7 +47,10 @@ public class Multipliers {
             Map.entry("2_2s", 10.0) // Честный кф - 10 // 10*1 = 10 -> 10%
     );
 
-    public static final Map<String, Double> SLOTS_MULTIPLIERS;
+    public static final Map<String, Double> SLOTS_MULTIPLIERS; // Для всех слотов
+    public static final double ODDS_OR_EVEN_MULTIPLIER = 2.0;
+    public static final double FLIP_COIN_MULTIPLIER = 2.0;
+
 
     static {
         SLOTS_MULTIPLIERS = getSlotsMultipliers();
@@ -57,7 +60,25 @@ public class Multipliers {
         return HONEST_SLOTS_MULTIPLIERS.entrySet().stream().
                 collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        entry -> Utils.getClearMultiplier(entry.getValue() * REDUCE_MULTIPLIER_FOR_SLOTS_GAME)
+                        entry -> Utils.getClearMultiplier(entry.getValue() * ((100.0 - REDUCE_MULTIPLIER_FOR_SLOTS_GAME) / 100.0))
                 ));
+    }
+
+    public static double getMultiplierForHigherOrLower(int currentNumber, boolean betOnHigher) {
+        return switch (currentNumber) {
+            case 2 -> betOnHigher ? 1.2 : 9.0;
+            case 3 -> betOnHigher ? 1.35 : 4.5;
+            case 4 -> betOnHigher ? 1.55 : 3.0;
+            case 5 -> betOnHigher ? 1.85 : 2.3;
+            case 6 -> betOnHigher ? 2.3 : 1.85;
+            case 7 -> betOnHigher ? 3.0 : 1.55;
+            case 8 -> betOnHigher ? 4.5 : 1.35;
+            case 9 -> betOnHigher ? 9.0 : 1.2;
+            default -> 1.0;
+        };
+    }
+
+    public static double getMultiplierForBlackjack(boolean isBlackjack, boolean isDoubleDown) {
+        return (isBlackjack ? (isDoubleDown ? 2.75 : 2.5) : (isDoubleDown ? 2.25 : 2.0));
     }
 }
