@@ -13,25 +13,13 @@ public class User {
         this.player = null;
     }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getPassword() { return password; }
 
-    public String getPassword() {
-        return password;
-    }
+    public Player getPlayer() { return player; }
 
-    public Player getPlayer() {
-        return player;
-    }
+    public void setPlayer(Player player) { this.player = player; }
 
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
-
-    public boolean hasPlayer() {
-        return player != null;
-    }
+    public boolean hasPlayer() { return player != null; }
 
     @Override
     public boolean equals(Object o) {
@@ -42,7 +30,5 @@ public class User {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(username);
-    }
+    public int hashCode() { return Objects.hash(username); }
 }

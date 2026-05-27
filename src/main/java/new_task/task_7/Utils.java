@@ -3,6 +3,7 @@ package new_task.task_7;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.InputMismatchException;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -89,16 +90,14 @@ public final class Utils {
         return CURRENCY_DOUBLE_FORMATTER.format(amount) + " " + CURRENCY;
     }
 
-    public static double getClearMultiplier(double multiplier) {
-        return Math.floor(multiplier * 100.0) / 100.0;
-    }
-
     public static boolean askToContinue() throws InterruptedException {
-        System.out.println("""
-        Желаете продолжить?
-        0. Назад
-        1. Продолжить
-        """);
+        System.out.println(
+                """
+                Желаете продолжить?
+                0. Назад
+                1. Продолжить
+                """
+        );
         int choice = whatToDoNext(1);
         if (choice == 1) return true;
         dotAnimation("Возвращаемся");
@@ -206,45 +205,14 @@ public final class Utils {
         return " ".repeat(leftPadding) + string + " ".repeat(rightPadding);
     }
 
-    //toDo перейти на toCenter()
-    public static void printActionPanel(ActionPanel actionPanel) {
-        switch (actionPanel) {
-            case START -> {
-                System.out.println("\n     ~       " + "|    <    |       +       |    >    |" + "       ~     ");
-                System.out.println(Utils.toInfo("Авторизация  ") + "|  Выход  |  Регистрация  |  Войти  |" + Utils.toInfo("  Авторизация"));
-                System.out.println("     ~       " + "|    0    |       1       |    2    |" +"       ~    \n");
-            }
-            case MENU -> {
-                System.out.println("\n   ~     " + "|    <    |     #     |     ₽     |    >    |" +"     ~    ");
-                System.out.println(Utils.toInfo("Главная  ") + "|  Выход  |  Профиль  |  Депозит  |  Азарт  |" + Utils.toInfo("  Главная "));
-                System.out.println("   ~     " + "|    0    |     1     |     2     |    3    |" + "     ~    \n");
-            }
-            case CONFIRMED_PROFILE -> {
-                System.out.println("\n   ~     " + "|    <    |" + "     ~    ");
-                System.out.println(Utils.toInfo("Профиль  ") + "|  Назад  |" + Utils.toInfo("  Профиль "));
-                System.out.println("   ~     " + "|    0    |" + "     ~    \n");
-            }
-            case UNCONFIRMED_PROFILE -> {
-                System.out.println("\n   ~     " + "|    <    |       ^       |" + "     ~    ");
-                System.out.println(Utils.toInfo("Профиль  ") + "|  Назад  |  Подтвердить  |" + Utils.toInfo("  Профиль "));
-                System.out.println("   ~     " + "|    0    |       1       |" + "     ~    \n");
-            }
-            case BALANCE -> {
-                System.out.println("\n   ~     " + "|    <    |      ₽      |     >     |" + "     ~   " );
-                System.out.println(Utils.toInfo("Депозит  ") + "|  Назад  |  Пополнить  |  Вывести  |" + Utils.toInfo("  Депозит"));
-                System.out.println("   ~     " + "|    0    |      1      |     2     |" + "     ~    \n");
-            }
-            case PLAY -> {
-                System.out.println("\n  ~    " + "|    <    |   777   |   1/2   |    %    |   >/<   |   ...   |   21!   |" + "    ~  ");
-                System.out.println(Utils.toInfo("Азарт  ") + "|  Назад  |  Slots  |  Evens  |  Flips  |  Hg/Lw  |  Words  |  BJack  |" + Utils.toInfo("  Азарт"));
-                System.out.println("  ~    " + "|    0    |    1    |    2    |    3    |    4    |    5    |    6    |" + "    ~  \n");
-            }
-            case ROULETTE -> {
-                System.out.println("\n|    <    | 1 число | 2 числа | 3 числа | 4 числа | 6 чисел | На цвет |  Чет/не |");
-                System.out.println("|  Назад  |  Прямо  |  Сплит  |  Стрит  |  Уголл  |  Линия  |  Color  |  Evens  |");
-                System.out.println("|    -    |   x35   |   x17   |   x11   |   x8    |   x5    |   x2    |   x2    |");
-                System.out.println("|    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |\n");
+    public static int getMaxWidthForTableSlots(Map<String, Double> table, String startWith) {
+        String maxString = "";
+        for (Map.Entry<String, Double> entry : table.entrySet()) {
+            if (entry.getKey().startsWith(startWith)) {
+                String currentString = entry.getKey() + entry.getValue() + ".".repeat(3);
+                if (currentString.length() > maxString.length()) maxString = currentString;
             }
         }
+        return maxString.length();
     }
 }

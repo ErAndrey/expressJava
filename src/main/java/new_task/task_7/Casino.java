@@ -1,21 +1,30 @@
 package new_task.task_7;
 
+import new_task.task_7.bet.Bet;
+import new_task.task_7.bet.BetType;
+import new_task.task_7.bonuses.*;
+import new_task.task_7.action_panel.ActionPanel;
+import new_task.task_7.action_panel.ActionPanels;
+
+import java.time.LocalDateTime;
 import java.util.*;
 
 public final class Casino {
     private static final Random RANDOM = new Random();
 
-    public static final double COMMISSION_FOR_WITHDRAW = 4.90; // В %
+    public static final double COMMISSION_FOR_WITHDRAW = 4.95; // В %
     private static final int MIN_BALANCE_FOR_PLAY = 1000;
 
     //toDo playWords
-    private int[] scorePlayers = new int[2];
+    private final int[] scorePlayers = new int[2];
 
     private final String GAME_NAME_ODDS_OR_EVEN = "Odds or Evens";
     private final String GAME_NAME_FLIP_COIN = "Flip coins";
     private final String GAME_NAME_HIGHER_PR_LOWER = "Higher or Lower";
     private final String GAME_NAME_GUESS_THE_WORDS = "Guess the Words";
     private final String GAME_NAME_BLACKJACK = "Blackjack 21";
+
+    //toDo Roulette
     private final String GAME_NAME_ROULETTE = "European Roulette";
 
     private final Player player;
@@ -31,65 +40,127 @@ public final class Casino {
         this.balance = balance;
     }
 
-    public double getBalance() {return this.balance;}
-
     public void changeBalance(double amount) {
         this.balance += amount;
     }
 
-    private int selectBet(double maxMultiplier) {
-        int bet;
+    private Bet selectBet(double maxMultiplier) {
+        int betAmount;
         int minBet = MIN_BALANCE_FOR_PLAY / 2;
         int maxBet = (int) (this.balance / maxMultiplier);
         while (true) {
-            bet = Utils.nextInt( "Укажите сумму ставки: ");
-            if (bet < minBet) {
+            betAmount = Utils.nextInt("Укажите сумму ставки: ");
+            if (betAmount < minBet) {
                 System.out.println(Utils.toError("System: ") + "Минимальная сумма ставки: " + Utils.formatCurrency(minBet));
                 continue;
             }
-            if (bet > player.getBalance()) {
+            if (betAmount > player.getBalance()) {
                 System.out.println(Utils.toError("System: ") + "Недостаточно средств! Ваш баланс: " + Utils.formatCurrency(player.getBalance()));
                 continue;
             }
-            if (bet > maxBet) {
+            if (betAmount > maxBet) {
                 System.out.println(Utils.toError("System: ") + "Извините, мы не можем принять такую ставку. Максимальная ставка: " + Utils.formatCurrency(maxBet));
                 continue;
             }
-            return bet;
+            return new Bet(BetType.REGULAR, betAmount);
         }
     }
 
-    private void applyBet(int betAmount) {
-        System.out.print(Utils.toInfo("System: ") + "Списание ставки. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toError(" -> "));
-        this.player.withdraw(betAmount, WhoChangePlayerBalance.CASINO);
-        this.balance += betAmount;
-        System.out.println(Utils.formatCurrency(this.player.getBalance()));
+    private Bet selectBetWithFreeBetCheck(double maxMultiplier) {
+        if (this.player.isFreeBetBonusActive()) {
+            //toDo получить freeBetBonuses, где они являются фрибетами, не истекшими
+            //toDO отфильтровать те фрибеты, которые имеют меньший кф, если пусто - то селект бет
+            if (maxMultiplier > player.getFreeBetBonus().getMaxMultiplier()) return selectBet(maxMultiplier);
+
+            //toDo фильтровать фрибеты по мультиплаеру, которые мы сможем принять как ставку
+            int maxBetForFreeBet = (int) (this.balance / Multipliers.getClearMultiplier((maxMultiplier - 1)));
+            if (player.getFreeBetBonus().getFreeBet() > maxBetForFreeBet) return selectBet(maxMultiplier);
+
+            //toDo если же таких фрибетов нет, то отправляем в selectBet
+            //toDo если такой 1 фрибет, то сразу предлагаем использовать его, если согласен, то возвращаем выбранную ставку с фрибетом
+            // если несколько пишем что хотим ли мы вообще юзать фрибет?
+            //toDo если да, то показываем список и просим номер фрибета
+            //toDo когда он его выбирает, сетим его в ставку и удаляем из freeBetBonuses
+
+            //toDo если выиграет или проиграет, то расчитываем ставку
+            //toDo иначе, если возврат, возвращаем фрибет в freeBetBonuses
+
+            System.out.println(Utils.toInfo("\nSystem: ") + "У вас есть активный фрибет на " + Utils.formatCurrency(player.getFreeBetBonus().getFreeBet()));
+            System.out.println(
+                    """
+                    0. Пропустить
+                    1. Использовать фрибет
+                    """
+            );
+
+            int choice = Utils.whatToDoNext(1);
+
+            if (choice == 1) {
+                player.setFreeBetBonusActive(false);
+                return new Bet(BetType.FREE_BET, player.getFreeBetBonus().getFreeBet());
+            }
+        }
+        return selectBet(maxMultiplier);
     }
 
-    private void returnBet(int betAmount) {
-        System.out.print(Utils.toInfo("System: ") + "Возврат ставки. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toInfo(" -> "));
-        player.deposit(betAmount, WhoChangePlayerBalance.CASINO);
-        this.balance -= betAmount;
-        System.out.println(Utils.formatCurrency(this.player.getBalance()) + "\n");
+    private void applyBet(Bet bet) {
+        if (bet.getType() == BetType.REGULAR) {
+            System.out.print(Utils.toInfo("System: ") + "Списание ставки. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toError(" -> "));
+            this.player.withdraw(bet.getAmount(), WhoChangePlayerBalance.CASINO);
+            this.balance += bet.getAmount();
+            System.out.println(Utils.formatCurrency(this.player.getBalance()));
+        }
     }
 
-    private void resolveBet(boolean isWin, int betAmount, double winAmount) {
+    private void printBet(Bet bet, double multiplier, String playerChoice) {
+        String freeBetText = bet.getType() == BetType.FREE_BET ? Utils.toAccent("Фрибет ") : "";
+        System.out.println(Utils.toInfo("\nВаша ставка: ") + freeBetText + playerChoice + ", " + Utils.formatCurrency(bet.getAmount()) + ", Кф " + Utils.toAccent("х" + multiplier) + "\n");
+    }
+
+    private void printBet(Bet bet) {
+        String freeBetText = bet.getType() == BetType.FREE_BET ? Utils.toAccent("Фрибет ") : "";
+        System.out.println(Utils.toInfo("\nВаша ставка: ") + freeBetText + Utils.formatCurrency(bet.getAmount()) + "\n");
+    }
+
+    private void returnBet(Bet bet) {
+        if (bet.getType() == BetType.REGULAR) {
+            System.out.print(Utils.toInfo("System: ") + "Возврат ставки. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toInfo(" -> "));
+            player.deposit(bet.getAmount(), WhoChangePlayerBalance.CASINO);
+            this.balance -= bet.getAmount();
+            System.out.println(Utils.formatCurrency(this.player.getBalance()) + "\n");
+        }
+    }
+
+    private void resolveBet(boolean isWin, Bet bet, double winAmount) {
         if (isWin) {
             System.out.println(Utils.toSuccess("Ваш выигрыш: ") + Utils.formatCurrency(winAmount));
             if (winAmount > this.balance) {
-                System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Текущая ставка была возвращена.");
-                returnBet(betAmount);
-                return;
+                if (bet.getType() == BetType.REGULAR) {
+                    System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Текущая ставка была возвращена.");
+                    returnBet(bet);
+                    return;
+                }
+                System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Фрибет был возвращен.");
+                this.player.setFreeBetBonusActive(true);
             }
             System.out.print(Utils.toInfo("System: ") + "Зачисление выигрыша. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toSuccess(" -> "));
             this.player.deposit(winAmount, WhoChangePlayerBalance.CASINO);
             this.balance -= winAmount;
             System.out.println(Utils.formatCurrency(this.player.getBalance()));
-            updatePlayerStatistic(true, winAmount - betAmount);
+            if (bet.getType() == BetType.REGULAR) {
+                updatePlayerStatistic(true, winAmount - bet.getAmount());
+            } else {
+                updatePlayerStatistic(true, winAmount);
+            }
         } else {
-            System.out.println(Utils.toError("Проигрыш: ") + Utils.formatCurrency(betAmount));
+            if (bet.getType() == BetType.REGULAR) {
+                System.out.println(Utils.toError("Проигрыш: ") + Utils.formatCurrency(bet.getAmount()));
+                updatePlayerStatistic(false, bet.getAmount());
+            } else {
+                System.out.println(Utils.toError("Проигрыш: ") + "Фрибет проиграл");
+                updatePlayerStatistic(false, 0);
+            }
             System.out.println(Utils.toInfo("System: ") + "Ваш баланс " + Utils.formatCurrency(this.player.getBalance()));
-            updatePlayerStatistic(false, betAmount);
         }
         System.out.println();
     }
@@ -99,18 +170,75 @@ public final class Casino {
             this.player.updateTotalWinAmount(amount);
             this.player.updateTotalWins();
             this.player.updateCurrentWins();
+            this.player.resetCurrentLose();
             if (this.player.getCurrentWins() > this.player.getMaxWins()) this.player.updateMaxWins(player.getCurrentWins());
             if (amount > this.player.getMaxWinAmount()) this.player.updateMaxWinAmount(amount);
         } else {
             this.player.updateTotalLoseAmount(amount);
             this.player.updateTotalLose();
+            this.player.updateCurrentLose();
             this.player.resetCurrentWins();
         }
+        canAddBonus(isWin);
+    }
+
+    private void canAddBonus(boolean isWin) {
+        LocalDateTime fromData = LocalDateTime.now();
+        int initialBonusSize = player.getAvailableBonuses().size();
+        int totalGames = player.getTotalGames();
+
+        //test
+        if (totalGames == 1) player.addAvailableBonus(new FreeBetBonus(10_000, 9.5, fromData, 0, 4));
+        if (totalGames == 2) player.addAvailableBonus(new FreeBetBonus(10_000, 7.0, fromData, 0, 4));
+        if (totalGames == 3) player.addAvailableBonus(new FreeBetBonus(10_000, 6.0, fromData, 0, 4));
+        if (totalGames == 4) player.addAvailableBonus(new FreeBetBonus(10_000, 5.0, fromData, 0, 4));
+        if (totalGames == 5) player.addAvailableBonus(new FreeBetBonus(10_000, 4.0, fromData, 0, 4));
+        if (totalGames == 6) player.addAvailableBonus(new FreeBetBonus(10_000, 3.0, fromData, 0, 4));
+        if (totalGames == 7) player.addAvailableBonus(new FreeBetBonus(10_000, 2.0, fromData, 0, 4));
+        if (totalGames == 8) player.addAvailableBonus(new FreeBetBonus(10_000, 1.5, fromData, 0, 4));
+
+        switch (totalGames % 100) {
+            case 16 -> player.addAvailableBonus(new FreeBetBonus(5_000, 3.0, fromData, 0, 6));
+            case 32 -> player.addAvailableBonus(new DepositBonus(100.0, fromData, 0, 1));
+            case 48 -> player.addAvailableBonus(new CashBonus(15_000, fromData, 1, 0));
+            case 64 -> player.addAvailableBonus(new FreeBetBonus(15_000, 3.5, fromData, 0, 6));
+            case 80 -> player.addAvailableBonus(new DepositBonus(200.0, fromData, 0, 2));
+            case 96 -> player.addAvailableBonus(new CashBonus(45_000, fromData, 1, 12));
+        }
+
+        if (isWin) {
+            int wins = player.getTotalWins();
+            int currentWins = player.getCurrentWins();
+            switch (wins % 100) {
+                case 33 -> player.addAvailableBonus(new FreeBetBonus(10_000, 5.0, fromData, 0, 4));
+                case 66 -> player.addAvailableBonus(new FreeBetBonus(20_000, 3.0, fromData, 0, 6));
+                case 99 -> player.addAvailableBonus(new FreeBetBonus(30_000, 2.5, fromData, 0, 8));
+            }
+            switch (currentWins) {
+                case 5 -> player.addAvailableBonus(new FreeBetBonus(5_555, 3.5, fromData, 0, 1));
+                case 10 -> player.addAvailableBonus(new FreeBetBonus(55_555, 1.75 ,fromData, 0, 1));
+            }
+        } else {
+            int lose = player.getTotalLose();
+            int currentLose = player.getCurrentLose();
+            switch (lose % 100) {
+                case 33 -> player.addAvailableBonus(new FreeBetBonus(7_000, 4.0, fromData, 0, 2));
+                case 66 -> player.addAvailableBonus(new FreeBetBonus(14_000, 3.5, fromData, 0, 3));
+                case 99 -> player.addAvailableBonus(new FreeBetBonus(28_000, 3.0, fromData, 0, 4));
+            }
+            switch (currentLose) {
+                case 5 -> player.addAvailableBonus(new DepositBonus(30.0, fromData, 0, 1));
+                case 8 -> player.addAvailableBonus(new DepositBonus(50.0, fromData, 0, 1));
+                case 11 -> player.addAvailableBonus(new DepositBonus(100.0, fromData, 0, 1));
+            }
+        }
+
+        if (player.getAvailableBonuses().size() > initialBonusSize) System.out.println(Utils.toSuccess("System: ") + "Вам доступен новый бонус!");
     }
 
     public void play() throws InterruptedException {
         while (true) {
-            Utils.printActionPanel(ActionPanel.PLAY);
+            System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.PLAY));
 
             int action = Utils.whatToDoNext(6);
 
@@ -143,17 +271,12 @@ public final class Casino {
         }
     }
 
-    private void checkWinSlotsTableV2() {
+    private void checkWinSlotsTable() {
         while (true) {
-            String maxStringLineFor5Slots = "4r+2s+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_4r+2s+2s");
-            String maxStringLineFor4Slots = "2r+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("4_2r+2s");
-            String maxStringLineFor3Slots = "2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("3_2r");
-            String maxStringLineFor2Slots = "2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("2_2s");
-
-            int maxWidthFor5Slots = maxStringLineFor5Slots.length();
-            int maxWidthFor4Slots = maxStringLineFor4Slots.length();
-            int maxWidthFor3Slots = maxStringLineFor3Slots.length();
-            int maxWidthFor2Slots = maxStringLineFor2Slots.length();
+            int maxWidthFor5Slots = Utils.getMaxWidthForTableSlots(Multipliers.SLOTS_MULTIPLIERS, "5_");
+            int maxWidthFor4Slots = Utils.getMaxWidthForTableSlots(Multipliers.SLOTS_MULTIPLIERS, "4_");
+            int maxWidthFor3Slots = Utils.getMaxWidthForTableSlots(Multipliers.SLOTS_MULTIPLIERS, "3_");
+            int maxWidthFor2Slots = Utils.getMaxWidthForTableSlots(Multipliers.SLOTS_MULTIPLIERS, "2_");
 
             System.out.println(Utils.toInfo("\nТаблица возможных выигрышей и их коэффициентов:"));
 
@@ -208,21 +331,23 @@ public final class Casino {
                     + Utils.toCenter("2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("4_2r"), maxWidthFor4Slots) + "  |"
             );
 
-            System.out.println("|  "  + Utils.toCenter("3s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3s"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("2s+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2s+2s"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("3r+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3r+2s"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("2r+2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2r"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("2r+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2s"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("3r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3r"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2s"), maxWidthFor5Slots) + "  |");
-            System.out.println("|  "  + Utils.toCenter("2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("3s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3s"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("2s+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2s+2s"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("3r+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3r+2s"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("2r+2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2r"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("2r+2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2s"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("3r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_3r"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("2s -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2s"), maxWidthFor5Slots) + "  |");
+            System.out.println("|  " + Utils.toCenter("2r -> x" + Multipliers.SLOTS_MULTIPLIERS.get("5_2r"), maxWidthFor5Slots) + "  |");
 
             System.out.println(Utils.toInfo("\nПояснение:"));
-            System.out.print("""
-            5s / 4s / 3s - последовательность (в ряд) из - 5 / 4 / 3 чисел, примеры: [55555] / [04444] / [10333] / [333] / [22]
-            3r / 2r / 2r+2r - совпадение (наличие в результате) - 3 / 2 / 2ух пар чисел, примеры: [30310] - 3 совпадения (3) / [12012] - 2 совпадения (1 и 2)
-            3r+2s / 4r+2s+2s - совпадения + последовательности, примеры: [55015] - 3 повторения (5) + одна последовательность (5), [55055] - 4 повторения (5) + две последовательности по 2 (5)
-            """);
+            System.out.print(
+                    """
+                    5s / 4s / 3s - последовательность (в ряд) из - 5 / 4 / 3 чисел, примеры: [55555] / [04444] / [10333] / [333] / [22]
+                    3r / 2r+2r - совпадение (наличие в результате) - 3 / 2 / 2ух пар чисел, примеры: [30313] - 3 совпадения (3) / [12012] - 2 совпадения (1 и 2)
+                    3r+2s / 4r+2s+2s - совпадения + последовательности, примеры: [55015] - 3 повторения (5) + одна последовательность (5), [55055] - 4 повторения (5) + две последовательности по 2 (5)
+                    """
+            );
 
             System.out.println(Utils.toInfo("\nSystem: ") + "Чтобы вернуться назад выберите 0\n");
 
@@ -236,26 +361,28 @@ public final class Casino {
         while (true) {
             System.out.println(Utils.toInfo("\nSlots: ") + "Для начала игры, выберите количество слотов!\n");
 
-            System.out.println("""
-                0. Назад
-                1. Посмотреть таблицу возможных выигрышей
-                2. Крутить 2 слота
-                3. Крутить 3 слота
-                4. Крутить 4 слота
-                5. Крутить 5 слотов
-                """);
+            System.out.println(
+                    """
+                    0. Назад
+                    1. Посмотреть таблицу возможных выигрышей
+                    2. Крутить 2 слота
+                    3. Крутить 3 слота
+                    4. Крутить 4 слота
+                    5. Крутить 5 слотов
+                    """
+            );
 
             int choice = Utils.whatToDoNext(5);
 
             switch (choice) {
                 case 0 -> { return; }
-                case 1 -> checkWinSlotsTableV2();
+                case 1 -> checkWinSlotsTable();
                 case 2, 3, 4, 5 -> playGameLoop("x" + choice + " Slots", () -> playSlotsGame(choice));
             }
         }
     }
 
-    private Map<Integer, Integer> getRepeatForSlotResult(int[] results) {
+    private Map<Integer, Integer> getRepeatFromSlotResult(int[] results) {
         Map<Integer, Integer> frequency = new HashMap<>();
         for (int r : results) {
             frequency.merge(r, 1, Integer::sum);
@@ -269,7 +396,7 @@ public final class Casino {
         return repeats;
     }
 
-    private Map<Integer, Integer> getAllSequenceFromSlotResult(int[] results) {
+    private Map<Integer, Integer> getSequenceFromSlotResult(int[] results) {
         TreeMap<Integer, Integer> sequenceCount = new TreeMap<>();
         int currentSequenceLength = 1;
         for (int i = 0; i < results.length - 1; i++) {
@@ -288,7 +415,7 @@ public final class Casino {
         return sequenceCount;
     }
 
-    private Map<Integer, Integer> getCleanRepeatForSlotWithoutSequence(Map<Integer, Integer> repeat, Map<Integer, Integer> sequence) {
+    private Map<Integer, Integer> getCleanRepeatFromSlotWithoutSequence(Map<Integer, Integer> repeat, Map<Integer, Integer> sequence) {
         Map<Integer, Integer> cleanRepeat = new TreeMap<>();
         for (Map.Entry<Integer, Integer> entry : repeat.entrySet()) {
             if (!sequence.containsKey(entry.getKey())) {
@@ -302,248 +429,17 @@ public final class Casino {
         return cleanRepeat;
     }
 
-    private double getMultiplierForSlots(int slotCount, Map<Integer, Integer> sequence, Map<Integer, Integer> clearRepeat) {
-        /**
-         * clearRepeat.isEmpty == true
-         *      sequence.isEmpty == true (ни повторений, ни тем более последовательности) -> Проигрыш -> x0
-         *      sequence.isEmpty == false (только последовательности)
-         *          5 :
-         *              5 [5=1] - [5, 5, 5, 5, 5] = Джекпот +1 -> 10 / 100 000 = 0.01% -> x10 000
-         *              4 [4=1] - [4, 4, 4, 4, 0] = Каре последовательности +2 -> 180 / 100 000 = 0.18% -> x556
-         *              3+2 / 2+3 [2=1, 3=1] - [2, 2, 3, 3, 3] = Фул-хаус последовательности +3 -> 180 / 100 000 = 0.18% -> x556
-         *              3 [3=1] - [0, 3, 3, 3, 0] = Сет последовательности +4 -> 2 160 / 100 000 = 2.16% -> x46.3
-         *              2+2 [2=2] - [2, 2, 0, 3, 3] = Две пары последовательности +5 -> 2 160 / 100 000 = 2.16% -> x46.3
-         *              2 [2=1] - [1, 2, 2, 3, 4] = Одна пара последовательности +6 -> 20 160 / 100 000 = 20.16% -> x4.96
-         *          4 :
-         *              4 [4=1] - [4, 4, 4, 4] = Джекпот +1 -> 10 / 10 000 = 0.1% -> x1 000
-         *              3 [3=1] - [3, 3, 3, 0] = Сет последовательности +2 -> 180 / 10 000 = 1.8% -> x55.6
-         *              2+2 [2=2] - [1, 1, 2, 2] = Две пары последовательности +5 -> 180 / 10 000 = 1.8% -> x55.6
-         *              2 [2=1] - [1, 2, 2, 3] = Одна пара последовательности +6 -> 2 160 / 10 000 = 21.6% -> x4.63
-         *          3 :
-         *              3 [3=1] - [3, 3, 3] = Джекпот +1 -> 10 / 1 000 = 1% -> x100
-         *              2 [2=1] - [2, 2, 0] = Одна пара последовательности +6 -> 180 / 1 000 = 18% -> x5.56
-         *          2 :
-         *              2 [2=1] - [2, 2] = Джекпот +1 -> 10 / 100 = 10% -> x10
-         * clearRepeat.isEmpty == false
-         *      sequence.isEmpty == true (только повторения)
-         *          5 :
-         *              3 [3=1] - [1, 2, 1, 3, 1] = Сет повторения +7 -> 5 040 / 100 000 = 5.04% -> x19.8
-         *              3+2 / 2+3 [2=1, 3=1] - [1, 2, 1, 2, 1] = Фул-хаус повторения +8 -> 180 / 100 000 = 0.18% -> x556
-         *              2+2 [2=2] - [1, 2, 0, 1, 2] = Две пары повторения +9 -> 4 320 / 100 000 = 4.32% -> x23.1
-         *              2 [2=1] - [0, 1, 2, 3, 0] = Одна пара повторения +10 -> 30 240 / 100 000 = 30.24% -> x3.31
-         *          4 :
-         *              2+2 [1, 2, 1, 2] = Две пары повторения +9 -> 90 / 10 000 = 0.9% -> x111
-         *              2 [0, 1, 2, 1] = Одна пара повторения +10 -> 2 160 / 10 000 = 21.6% -> x4.63
-         *              // 10 * 9 * 9 * 1
-         *              //
-         *          3 :
-         *              2 [1, 2, 1] = Одна пара повторения +10 -> 90 / 1 000 = 9% -> x11.1
-         *      sequence.isEmpty == false (повторения + последовательности)
-         *          5 :
-         *              4пов1+3пос1 - [5,5,5,0,5] / [5,0,5,5,5] +11 -> 180 / 100 000 = 0.18% -> x556
-         *              4пов1+2пос2 - [5,5,0,5,5] +12 -> 90 / 100 000 = 0.09% -> x1 111
-         *              3пов1+2пос1 - [5,5,0,1,5] / [5,0,1,5,5] / [0,5,1,5,5]... +13 -> 3 600 / 100 000 = 3.6% -> x27.8
-         *              3пов1+2пос2 - [5,5,0,0,5]... +14 -> 180 / 100 000 = 0.18% -> x556
-         *              2пов1+3пос1 - [0,0,5,5,5] +15 -> 180 / 100 000 = 0.18% -> x556
-         *              2пов1+2пос1 - [0,5,5,0,1] +16 -> 4 320 / 100 000 = 4.32% -> x23.1
-         *          4 :
-         *              3пов1+2пос1 - [4,4,0,4] +13 -> 180 / 10 000 = 1.8% -> x55.6
-         *              2пов1+2пос1 - [4,0,0,4] +16 -> 90 / 10 000 = 0.9% -> x111
-         */
-
-        if (clearRepeat.isEmpty()) {
-            // 0 Поражение
-            if (sequence.isEmpty()) {
-                System.out.println("\nУвы, ни одно число не совпало. Повезет в следующий раз!");
-                return 0;
-            }
-
-            // 1 Джекпот
-            if (sequence.containsKey(slotCount)) {
-                System.out.print("\nДжекпот! Все числа совпали!");
-                return switch (slotCount) {
-                    case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_5s");
-                    case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_4s");
-                    case 3 -> Multipliers.SLOTS_MULTIPLIERS.get("3_3s");
-                    case 2 -> Multipliers.SLOTS_MULTIPLIERS.get("2_2s");
-                    default -> {
-                        System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Джекпот\"");
-                        yield -1;
-                    }
-                };
-            }
-
-            // 2 Почти джекпот последовательности
-            if (sequence.containsKey(slotCount - 1)) {
-                System.out.print("\nПоздравляем! Еще чуть-чуть и был бы джекпот!");
-                return switch (slotCount) {
-                    case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_4s");
-                    case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_3s");
-                    case 3 -> Multipliers.SLOTS_MULTIPLIERS.get("3_2s");
-                    default -> {
-                        System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Почти джекпот последовательности\"");
-                        yield -1;
-                    }
-                };
-            }
-
-            if (sequence.containsKey(3) && sequence.get(3) == 1) {
-                // 3 Фул-хаус последовательности
-                if (sequence.containsKey(2) && sequence.get(2) == 1) {
-                    System.out.print("\nВау, последовательный фул-хаус!");
-                    return Multipliers.SLOTS_MULTIPLIERS.get("5_3s+2s");
-                }
-
-                // 4 Сет последовательности
-                System.out.print("\nПоследовательный сет, три в ряд!");
-                return Multipliers.SLOTS_MULTIPLIERS.get("5_3s");
-            }
-
-            if (sequence.containsKey(2)) {
-                // 5 Две пары последовательности
-                if (sequence.get(2) == 2) {
-                    System.out.print("\nОгонь! Две последовательные пары!");
-                    return switch (slotCount) {
-                        case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_2s+2s");
-                        case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_2s+2s");
-                        default -> {
-                            System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Две пары последовательности\"");
-                            yield -1;
-                        }
-                    };
-                }
-
-                // 6 Одна пара последовательности
-                if (sequence.get(2) == 1) {
-                    System.out.print("\nОдна последовательная пара!");
-                    return switch (slotCount) {
-                        case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_2s");
-                        case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_2s");
-                        case 3 -> Multipliers.SLOTS_MULTIPLIERS.get("3_2s");
-                        default -> {
-                            System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Одна пара последовательности\"");
-                            yield -1;
-                        }
-                    };
-                }
-            }
-        } else {
-            if (sequence.isEmpty()) {
-                if (clearRepeat.containsKey(3) && clearRepeat.get(3) == 1) {
-                    // 8 Фул-хаус повторения
-                    if (clearRepeat.containsKey(2) && clearRepeat.get(2) == 1) {
-                        System.out.print("\nЕее, это классический фул-хаус!");
-                        return Multipliers.SLOTS_MULTIPLIERS.get("5_3r+2r");
-                    }
-
-                    // 7 Сет повторения
-                    System.out.print("\nТри числа совпали! Это сет!");
-                    return Multipliers.SLOTS_MULTIPLIERS.get("5_3r");
-                }
-
-                if (clearRepeat.containsKey(2)) {
-                    // 9 Две пары повторения
-                    if (clearRepeat.get(2) == 2) {
-                        System.out.print("\nДве пары!");
-                        return switch (slotCount) {
-                            case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2r");
-                            case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_2r+2r");
-                            default -> {
-                                System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Две пары повторения\"");
-                                yield -1;
-                            }
-                        };
-                    }
-
-                    // 10 Одна пара повторения
-                    if (clearRepeat.get(2) == 1) {
-                        System.out.print("\nДва числа совпали! Одна пара!");
-                        return switch (slotCount) {
-                            case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_2r");
-                            case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_2r");
-                            case 3 -> Multipliers.SLOTS_MULTIPLIERS.get("3_2r");
-                            default -> {
-                                System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"Одна пара повторения\"");
-                                yield -1;
-                            }
-                        };
-                    }
-                }
-            } else {
-                if (clearRepeat.containsKey(4) && clearRepeat.get(4) == 1) {
-                    // 11 4пов1+3пос1
-                    if (sequence.containsKey(3) && sequence.get(3) == 1){
-                        System.out.print("\nТри в ряд! Да еще и 4 числа совпали!");
-                        return Multipliers.SLOTS_MULTIPLIERS.get("5_4r+3s");
-                    }
-
-                    // 12 4пов1+2пос2
-                    if (sequence.containsKey(2) && sequence.get(2) == 2) {
-                        System.out.print("\nДве пары в ряд! Да еще и 4 числа совпали!");
-                        return Multipliers.SLOTS_MULTIPLIERS.get("5_4r+2s+2s");
-                    }
-                }
-
-                if (clearRepeat.containsKey(3) && clearRepeat.get(3) == 1) {
-                    if (sequence.containsKey(2)) {
-                        // 13 3пов1+2пос1
-                        if (sequence.get(2) == 1) {
-                            System.out.print("\nПара в ряд! Да еще и 3 числа совпали!");
-                            return switch (slotCount) {
-                                case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_3r+2s");
-                                case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_3r+2s");
-                                default -> {
-                                    System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"3пов1+2пос1\"");
-                                    yield -1;
-                                }
-                            };
-                        }
-
-                        // 14 3пов1+2пос2
-                        if (sequence.get(2) == 2) {
-                            System.out.print("\nДве пары в ряд! Да еще и 3 числа совпали!");
-                            return Multipliers.SLOTS_MULTIPLIERS.get("5_3r+2s+2s");
-                        }
-                    }
-                }
-
-                if (clearRepeat.containsKey(2) && clearRepeat.get(2) == 1) {
-                    // 15 2пов1+3пос1
-                    if (sequence.containsKey(3) && sequence.get(3) == 1) {
-                        System.out.print("\nТри числа в ряд! Да еще и пара повторения!");
-                        return Multipliers.SLOTS_MULTIPLIERS.get("5_2r+3s");
-                    }
-
-                    // 16 2пов1+2пос1
-                    if (sequence.containsKey(2) && sequence.get(2) == 1) {
-                        System.out.print("\nДве пары! Одна в ряд, другая совпадение.");
-                        return switch (slotCount) {
-                            case 5 -> Multipliers.SLOTS_MULTIPLIERS.get("5_2r+2s");
-                            case 4 -> Multipliers.SLOTS_MULTIPLIERS.get("4_2r+2s");
-                            default -> {
-                                System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "в \"2пов1+2пос1\"");
-                                yield -1;
-                            }
-                        };
-                    }
-                }
-            }
-        }
-        System.out.println(Utils.toError("System: Ошибка расчета коэффициента ") + "ни один из сценариев");
-        return -1; // Не пойманный кейс
-    }
-
-    private double calculateSlotGameResult(int betAmount, int[] slotResults){
+    private double calculateSlotGameResult(Bet bet, int[] slotResults) {
         int slotCount = slotResults.length;
 
-        Map<Integer, Integer> sequence = getAllSequenceFromSlotResult(slotResults);
-        Map<Integer, Integer> clearRepeat = getCleanRepeatForSlotWithoutSequence(getRepeatForSlotResult(slotResults), sequence);
+        Map<Integer, Integer> sequence = getSequenceFromSlotResult(slotResults);
+        Map<Integer, Integer> clearRepeat = getCleanRepeatFromSlotWithoutSequence(getRepeatFromSlotResult(slotResults), sequence);
 
-        double multiplier = getMultiplierForSlots(slotCount, sequence, clearRepeat);
+        double multiplier = Multipliers.getMultiplierForSlots(slotCount, sequence, clearRepeat);
 
         if (multiplier > 0) System.out.println(" Кф " + Utils.toAccent("x" + multiplier));
 
-        return betAmount * multiplier;
+        return bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);
     }
 
     private void playSlotsGame(int slotCount) throws InterruptedException {
@@ -561,16 +457,16 @@ public final class Casino {
             }
         };
 
-        int betAmount = selectBet(maxMultiplier);
-        applyBet(betAmount);
+        Bet bet = selectBet(maxMultiplier);
 
-        System.out.println(Utils.toInfo("\nВаша ставка: ") + Utils.formatCurrency(betAmount) + "\n");
+        applyBet(bet);
+        printBet(bet);
 
         int[] results = Utils.spinSlotsInARow(slotCount);
-        double winAmount = calculateSlotGameResult(betAmount, results);
+        double winAmount = calculateSlotGameResult(bet, results);
         boolean isWin = winAmount > 0;
 
-        resolveBet(isWin, betAmount, winAmount);
+        resolveBet(isWin, bet, winAmount);
     }
 
     private void playEven() throws InterruptedException {
@@ -580,10 +476,10 @@ public final class Casino {
         String parity = selectNumber % 2 == 0 ? "Четное" : "Нечетное";
 
         double multiplier = Multipliers.ODDS_OR_EVEN_MULTIPLIER;
-        int betAmount = selectBet(multiplier);
-        applyBet(betAmount);
+        Bet bet = selectBetWithFreeBetCheck(multiplier);
 
-        System.out.println(Utils.toInfo("\nВаша ставка: ") + parity + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("х" + multiplier) + "\n");
+        applyBet(bet);
+        printBet(bet, multiplier, parity);
 
         Utils.waitAnimation("Крутим рулетку");
 
@@ -600,14 +496,14 @@ public final class Casino {
             System.out.println("Выпало число " + randomNumber + " - " + Utils.toAccent(randomParity) + "\n");
             isWin = (selectNumber == 1 && !isEven) || (selectNumber == 2 && isEven);
             if (isWin) {
-                winAmount = betAmount * multiplier;
+                winAmount = bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);
                 System.out.println("Поздравляем! Ваша ставка выиграла!");
             } else {
                 System.out.println("К сожалению, вы не угадали.");
             }
         }
 
-        resolveBet(isWin, betAmount, winAmount);
+        resolveBet(isWin, bet, winAmount);
     }
 
     //toDo
@@ -615,7 +511,10 @@ public final class Casino {
         while (true) {
             System.out.println(Utils.toInfo(this.GAME_NAME_ROULETTE + ": ") + "Выбери ставку по желанию!");
 
-            Utils.printActionPanel(ActionPanel.ROULETTE);
+            System.out.println("\n|    <    | 1 число | 2 числа | 3 числа | 4 числа | 6 чисел | На цвет |  Чет/не |");
+            System.out.println("|  Назад  |  Прямо  |  Сплит  |  Стрит  |  Уголл  |  Линия  |  Color  |  Evens  |");
+            System.out.println("|    -    |   x35   |   x17   |   x11   |   x8    |   x5    |   x2    |   x2    |");
+            System.out.println("|    0    |    1    |    2    |    3    |    4    |    5    |    6    |    7    |\n");
 
             int choice = Utils.whatToDoNext(7);
 
@@ -636,10 +535,10 @@ public final class Casino {
         String playerSide = playerChoice == 1 ? "Орёл" : "Решка";
 
         double multiplier = Multipliers.FLIP_COIN_MULTIPLIER;
-        int betAmount = selectBet(multiplier);
-        applyBet(betAmount);
+        Bet bet = selectBetWithFreeBetCheck(multiplier);
 
-        System.out.println(Utils.toInfo("\nВаша ставка: ") + playerSide + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("х" + multiplier) + "\n");
+        applyBet(bet);
+        printBet(bet, multiplier, playerSide);
 
         Utils.waitAnimation("Подбрасываем монетку");
 
@@ -651,13 +550,13 @@ public final class Casino {
         boolean isWin = playerChoice == result;
 
         if (isWin) {
-            winAmount = betAmount * multiplier;
+            winAmount = bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);;
             System.out.println("Поздравляем! Вы угадали!");
         }
 
-        resolveBet(isWin, betAmount, winAmount);
+        resolveBet(isWin, bet, winAmount);
     }
-    
+
     private void playHigherOrLower() throws InterruptedException {
         System.out.println(Utils.toInfo(this.GAME_NAME_HIGHER_PR_LOWER + ": ") + "Угадай, следующее число больше или меньше!\n");
 
@@ -672,10 +571,10 @@ public final class Casino {
         String choiceName = betOnHigher ? "Больше" : "Меньше";
 
         double multiplier = Multipliers.getMultiplierForHigherOrLower(currentNumber, betOnHigher);
-        int betAmount = selectBet(multiplier);
-        applyBet(betAmount);
+        Bet bet = selectBetWithFreeBetCheck(multiplier);
 
-        System.out.println(Utils.toInfo("\nВаша ставка: ") + choiceName + " " + currentNumber + ", " + Utils.formatCurrency(betAmount) + ", Кф " + Utils.toAccent("x" + multiplier) + "\n");
+        applyBet(bet);
+        printBet(bet, multiplier, choiceName + " " + currentNumber);
 
         int nextNumber;
         do {
@@ -692,11 +591,11 @@ public final class Casino {
         boolean isWin = betOnHigher ? nextNumber > currentNumber : nextNumber < currentNumber;
 
         if (isWin) {
-            winAmount = betAmount * multiplier;
+            winAmount = bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);
             System.out.println("Поздравляем, Вы угадали!");
         }
 
-        resolveBet(isWin, betAmount, winAmount);
+        resolveBet(isWin, bet, winAmount);
     }
 
     private void playWords() throws InterruptedException {
@@ -749,8 +648,8 @@ public final class Casino {
     private void playBlackjack() throws InterruptedException {
         System.out.println(Utils.toInfo(this.GAME_NAME_BLACKJACK + ": ") + "Набери 21 очко, но не больше!\n");
 
-        int betAmount = selectBet(Multipliers.getMultiplierForBlackjack(true, true));
-        applyBet(betAmount);
+        Bet bet = selectBet(Multipliers.getMultiplierForBlackjack(true, true));
+        applyBet(bet);
 
         Utils.dotAnimation("\nПеремешиваем колоду");
         List<Card> deck = createDeck(1);
@@ -776,11 +675,11 @@ public final class Casino {
 
             // Проверяем Blackjack у дилера
             if (getHandValue(dealerHand) == 21 && dealerHand.size() == 2) {
-                System.out.println("\nУ дилера тоже Black Jack! Ничья.");
-                returnBet(betAmount);
+                System.out.println("У дилера тоже Black Jack! Ничья.");
+                returnBet(bet);
                 return;
             } else {
-                System.out.println("\nДвадцать одно! Black Jack! 🎉");
+                System.out.println("Двадцать одно! Black Jack! 🎉");
                 isWin = true;
                 playerTurn = false;
                 isBlackjack = true;
@@ -822,16 +721,16 @@ public final class Casino {
                 isDoubleDown = true;
 
                 // Проверяем, хватает ли денег на удвоение
-                if (player.getBalance() < betAmount) {
+                if (player.getBalance() < bet.getAmount()) {
                     System.out.println(Utils.toError("\nSystem: ") + "Недостаточно средств для удвоения ставки!");
-                    System.out.println(Utils.toInfo("System: ") + "Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + ", ваша ставка " + Utils.formatCurrency(betAmount));
+                    System.out.println(Utils.toInfo("System: ") + "Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + ", ваша ставка " + Utils.formatCurrency(bet.getAmount()));
                     continue;
                 }
 
-                applyBet(betAmount);
-                System.out.print(Utils.toInfo("System: ") + "Ставка увеличена вдвое! " + Utils.formatCurrency(betAmount) + Utils.toAccent(" -> "));
-                betAmount *= 2;
-                System.out.print(Utils.formatCurrency(betAmount) + "\n");
+                applyBet(bet);
+                System.out.print(Utils.toInfo("System: ") + "Ставка увеличена вдвое! " + Utils.formatCurrency(bet.getAmount()) + Utils.toAccent(" -> "));
+                bet.setAmount(bet.getAmount() * 2);
+                System.out.print(Utils.formatCurrency(bet.getAmount()) + "\n");
 
                 Utils.dotAnimation("Достаем карту");
                 playerHand.add(drawCard(deck));
@@ -852,9 +751,9 @@ public final class Casino {
         }
 
         // Ход дилера (если игрок не перебрал)
-        //toDo 
-        // 1. надо чтоб дилер видел карты соперника, если у того 13, диллер добирает пока не >13
-        // 2. или придумать так, что диллер не знает своей не раскрытой карты и по мат ожиданию берет или не берет
+        //toDo
+        // 1. надо чтоб дилер видел карты соперника, если у того 13, дилер добирает пока не >13
+        // 2. или придумать так, что дилер не знает своей не раскрытой карты и по мат ожиданию берет или не берет
         if (getHandValue(playerHand) <= 21 && !isWin) {
             System.out.println(Utils.toInfo("\nХод дилера:"));
             Utils.dotAnimation("Смотрит карты и принимает решение");
@@ -880,15 +779,17 @@ public final class Casino {
                 isWin = true;
             } else if (playerValue == dealerValue) {
                 System.out.println("Ничья. Ставка будет возвращена");
-                returnBet(betAmount);
+                returnBet(bet);
                 return;
             } else {
                 System.out.println("Увы... Дилер выиграл");
             }
         }
 
-        double winAmount = Multipliers.getMultiplierForBlackjack(isBlackjack, isDoubleDown) * betAmount;
-        resolveBet(isWin, betAmount, winAmount);
+        double multiplier = Multipliers.getMultiplierForBlackjack(isBlackjack, isDoubleDown);
+        double winAmount = bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);
+
+        resolveBet(isWin, bet, winAmount);
     }
 
     private List<Card> createDeck(int decksCount) {

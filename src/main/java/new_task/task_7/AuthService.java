@@ -1,8 +1,10 @@
 package new_task.task_7;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import new_task.task_7.bonuses.*;
+import new_task.task_7.action_panel.ActionPanel;
+import new_task.task_7.action_panel.ActionPanels;
+
+import java.util.*;
 
 public class AuthService {
     private final Map<String, User> users = new HashMap<>();
@@ -10,7 +12,7 @@ public class AuthService {
 
     public void start() throws InterruptedException {
         while (true) {
-            Utils.printActionPanel(ActionPanel.START);
+            System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.START));
 
             int choice = Utils.whatToDoNext(2);
 
@@ -46,6 +48,14 @@ public class AuthService {
         }
     }
 
+    private Optional<User> findUser(String username, String password) {
+        User user = users.get(username);
+        if (user != null && user.getPassword().equals(password)) {
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+
     private void register() throws InterruptedException {
         String username = Utils.next("Придумайте логин: ");
 
@@ -76,30 +86,15 @@ public class AuthService {
         menu(newPlayer);
     }
 
-    private void confirmPlayerAccount(Player player) {
-        System.out.println(Utils.toInfo("System: ") + "Чтобы подтвердить аккаунт, укажите ваш Email");
-        while (true) {
-            String email = Utils.next("Ваша почта: ");
-            if (Utils.validateEmail(email)) {
-                player.setEmail(email);
-                player.setConfirmedAccount();
-                System.out.println(Utils.toSuccess("System: ") + "Профиль подтвержден, лимиты увеличены!");
-                return;
-            }
-            System.out.println(Utils.toError("System: ") + "Почта \"" + email + "\" некорректна!");
-        }
-    }
-
-    //toDo Добавить бонусы, которые сетит казиныч при лузах
     private void menu(Player player) throws InterruptedException {
         Casino casino = new Casino(player, 2_000_000_000);
 
         while (true) {
             //System.out.println(Utils.toAccent("\nSystem: ") + "Баланс казино " + Utils.formatCurrency(casino.getBalance()));
 
-            Utils.printActionPanel(ActionPanel.MENU);
+            System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.MENU));
 
-            int choice = Utils.whatToDoNext(3);
+            int choice = Utils.whatToDoNext(4);
 
             switch (choice) {
                 case 0 -> {
@@ -108,21 +103,22 @@ public class AuthService {
                 }
                 case 1 -> profile(player);
                 case 2 -> balance(player, casino);
-                case 3 -> casino.play();
+                case 3 -> bonuses(player);
+                case 4 -> casino.play();
             }
         }
     }
 
     //toDo Удалить профиль
-    private void profile(Player player) throws InterruptedException {
+    private void profile(Player player) {
         while (true) {
             boolean isConfirmedAccount = player.isConfirmedAccount();
-            String isConfirmedText = isConfirmedAccount ? "Да" : "Нет";
+            String isConfirmedText = isConfirmedAccount ? Utils.toSuccess("Да") : Utils.toError("Нет");
 
             if (isConfirmedAccount) {
-                Utils.printActionPanel(ActionPanel.CONFIRMED_PROFILE);
+                System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.CONFIRMED_PROFILE));
             } else {
-                Utils.printActionPanel(ActionPanel.UNCONFIRMED_PROFILE);
+                System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.UNCONFIRMED_PROFILE));
                 System.out.println(Utils.toError("System: ") + "Лимиты на пополнение и снятие снижены! Подтвердите аккаунт для их увеличения\n");
             }
 
@@ -149,29 +145,41 @@ public class AuthService {
             int choice = isConfirmedAccount ? Utils.whatToDoNext(0) : Utils.whatToDoNext(1);
 
             switch (choice) {
-                case 0 -> {
-                    return;
-                }
+                case 0 -> { return; }
                 case 1 -> confirmPlayerAccount(player);
             }
         }
     }
 
-    private void balance(Player player, Casino casino) throws InterruptedException {
+    private void confirmPlayerAccount(Player player) {
+        System.out.println(Utils.toInfo("System: ") + "Чтобы подтвердить аккаунт, укажите ваш Email");
+        while (true) {
+            String email = Utils.next("Ваша почта: ");
+            if (Utils.validateEmail(email)) {
+                player.setEmail(email);
+                player.setConfirmedAccount();
+                System.out.println(Utils.toSuccess("System: ") + "Профиль подтвержден, лимиты увеличены!");
+                return;
+            }
+            System.out.println(Utils.toError("System: ") + "Почта \"" + email + "\" некорректна!");
+        }
+    }
+
+    private void balance(Player player, Casino casino) {
         while (true) {
             System.out.println(Utils.toInfo("\nSystem: ") + "Ваш баланс " + Utils.formatCurrency(player.getBalance()));
 
-            Utils.printActionPanel(ActionPanel.BALANCE);
+            if (player.isDepositBonus()) System.out.println(Utils.toSuccess("System: ") + "У вас активен бонус на пополнение " + Utils.toAccent(player.getDepositBonus().getPercent() + "%"));
+
+            System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.BALANCE));
 
             int choice = Utils.whatToDoNext(2);
 
             switch (choice) {
-                case 0 -> {
-                    return;
-                }
+                case 0 -> { return; }
                 case 1 -> {
                     int amount = Utils.nextInt("Сумма пополнения: ");
-                    if (player.deposit(amount, WhoChangePlayerBalance.PLAYER)) {
+                    if (player.deposit(amount, WhoChangePlayerBalance.PLAYER)){
                         player.updateAllIncome(amount);
                         System.out.println(Utils.toSuccess("System: ") + "Пополнение " + Utils.formatCurrency(amount));
                     }
@@ -195,11 +203,135 @@ public class AuthService {
         }
     }
 
-    private Optional<User> findUser(String username, String password) {
-        User user = users.get(username);
-        if (user != null && user.getPassword().equals(password)) {
-            return Optional.of(user);
+    private void bonuses(Player player) {
+        while (true) {
+            TreeMap<Integer, Bonus> bonuses = player.getAvailableBonuses();
+            boolean isHaveBonuses = !bonuses.isEmpty();
+
+            if (isHaveBonuses) {
+                System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.HAVE_BONUSES));
+                System.out.println(Utils.toInfo("System: ") + "Успейте применить бонус, пока предложение активно!\n");
+                bonuses.forEach((number, bonus) -> System.out.println(bonus));
+                System.out.println();
+            } else {
+                System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.HAVE_NOT_BONUSES));
+                if (player.isSeeEmptyBonuses()) {
+                    System.out.println(Utils.toInfo("System: ") + "Новых бонусов пока-что нет\n");
+                } else {
+                    System.out.println(Utils.toInfo("System: ") + "У вас еще нет бонусов, узнайте, как их получить ;)\n");
+                    player.setSeeEmptyBonuses();
+                }
+
+            }
+
+            int choice = isHaveBonuses ? Utils.whatToDoNext(3) : Utils.whatToDoNext(2);
+
+            switch (choice) {
+                case 0 -> { return; }
+                case 1 -> howToGetBonuses();
+                case 2 -> viewBonusTypes();
+                case 3 -> selectBonus(player);
+            }
         }
-        return Optional.empty();
     }
+
+    private void howToGetBonuses() {
+        while (true) {
+            System.out.println(Utils.toInfo("\nЗа что можно получить бонусы:"));
+
+            System.out.println(
+                    """
+                    1. Через каждые 16 игр.
+                    2. Через каждые 33 победы.
+                    3. Через каждые 33 поражения.
+                    4. За серии побед.
+                    5. За серии поражений.
+                    """
+            );
+
+            System.out.println(Utils.toInfo("System: ") + "Чтобы вернуться назад выберите 0\n");
+
+            int choice = Utils.whatToDoNext(0);
+
+            if (choice == 0) return;
+        }
+    }
+
+    private void viewBonusTypes() {
+        while (true) {
+            System.out.println(Utils.toInfo("\nКакие бонусы бывают:"));
+
+            System.out.println(
+                    "1. " + Utils.toAccent("Бонус на счет") + " - предоставляется в виде суммы, при применении пополняет ваш депозит на сумму бонуса.\n" +
+                            "2. " + Utils.toAccent("Бонус на депозит") + " - начисляется как процент, увеличивая сумму следующего пополнения баланса.\n" +
+                            "3. " + Utils.toAccent("Фрибет") + " - бесплатная ставка, при выигрыше вы получаете только чистую прибыль без возврата суммы ставки.\n"
+            );
+
+            System.out.println(Utils.toInfo("System: ") + "Чтобы вернуться назад выберите 0\n");
+
+            int choice = Utils.whatToDoNext(0);
+
+            if (choice == 0) return;
+        }
+    }
+
+    private void selectBonus(Player player) {
+        System.out.println(Utils.toInfo("System: ") + "Чтобы применить бонус, укажите его номер");
+        while (true) {
+            int choice = Utils.nextInt("Номер бонуса: ");
+            if (player.getAvailableBonuses().containsKey(choice)) {
+                Object bonus = player.getAvailableBonuses().get(choice);
+                switch (bonus) {
+                    case CashBonus cashBonus -> applyCashBonus(player, cashBonus);
+                    case DepositBonus depositBonus -> applyDepositBonus(player, depositBonus);
+                    case FreeBetBonus freeBetBonus -> applyFreeBetBonus(player, freeBetBonus);
+                    default -> System.out.println(Utils.toError("System: ") + "Ошибка выбора бонуса!");
+                }
+                return;
+            }
+            System.out.println(Utils.toError("System: ") + "Такого бонуса у вас нет!");
+        }
+    }
+
+    private void applyCashBonus(Player player, CashBonus bonus) {
+        player.deposit(bonus.getAmount(), WhoChangePlayerBalance.CASINO);
+        player.removeAvailableBonus(bonus);
+        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " активирован, ваш баланс увеличен на " + Utils.formatCurrency(bonus.getAmount()));
+    }
+
+    private void applyDepositBonus(Player player, DepositBonus bonus) {
+        if (player.isDepositBonus()) {
+            System.out.println(Utils.toError("System: ") + "У вас уже активирован бонус на пополнение, сначала воспользуйтесь им!");
+            return;
+        }
+        player.removeAvailableBonus(bonus);
+        player.addDepositBonus(bonus);
+        player.removeAvailableBonus(bonus);
+        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " активирован, при следующем пополнении вы получите дополнительные " + bonus.getPercent() + "%");
+    }
+
+    /*
+    private void applyFreeBetBonus(Player player, FreeBetBonus bonus) {
+        if (player.isFreeBetBonus()) {
+            System.out.println(Utils.toError("System: ") + "У вас уже активирован фрибет, сначала воспользуйтесь им!");
+            return;
+        }
+        player.removeAvailableBonus(bonus);
+        player.setFreeBetAmount(bonus.getFreeBet());
+        player.setFreeBetBonus(true);
+        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " - фрибет на " + Utils.formatCurrency(bonus.getFreeBet()) + " активирован, можете воспользоваться им в следующей игре!");
+    }
+    */
+
+    private void applyFreeBetBonus(Player player, FreeBetBonus bonus) {
+        if (player.isFreeBetBonusActive()) {
+            System.out.println(Utils.toError("System: ") + "У вас уже активирован фрибет, сначала воспользуйтесь им!");
+            return;
+        }
+        player.removeAvailableBonus(bonus);
+        player.setFreeBetBonus(bonus);
+        player.setFreeBetBonusActive(true);
+        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " - фрибет на " + Utils.formatCurrency(bonus.getFreeBet()) + " активирован, можете воспользоваться им в следующей игре с Кф до " + Utils.toAccent("x" + bonus.getMaxMultiplier()));
+    }
+
 }
