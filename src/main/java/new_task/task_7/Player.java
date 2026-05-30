@@ -1,10 +1,12 @@
 package new_task.task_7;
 
+import new_task.task_7.bet_history.BetHistory;
+import new_task.task_7.bet_history.BetRecord;
 import new_task.task_7.bonuses.Bonus;
 import new_task.task_7.bonuses.DepositBonus;
 import new_task.task_7.bonuses.FreeBetBonus;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.TreeMap;
 
 public class Player {
@@ -28,22 +30,24 @@ public class Player {
     private double allIncome;
     private double allOutcome;
 
-    //toDo перейти на availableBonus и activeBonus, чтобы не добавлять лишние поля для бонусов
-    // так же метод, который проверяет их срок
     private final TreeMap<Integer, Bonus> availableBonuses;
     private boolean isSeeEmptyBonuses;
 
-    private DepositBonus depositBonus;
-    //toDo заменить на treeMap / лист + так же учитывать expired , флаг сносим, в листе будут все активные фрибеты, которые аплплает юзер, будут выбираться в зависимости от игры, кфа и возможности казино выплатить фрибет с учетом кфа и его баланса
-    private FreeBetBonus freeBetBonus;
-    private boolean isFreeBetBonusActive;
+    private final TreeMap<Integer, FreeBetBonus> freeBetBonuses;
+    private final TreeMap<Integer, DepositBonus> depositBonuses;
 
-    List<FreeBetBonus> freeBetBonusList;
+    private final BetHistory<LocalDateTime, BetRecord> betHistory;
+
+    public BetHistory<LocalDateTime, BetRecord> getBetHistory () { return this.betHistory; }
+    public void addBetToHistory(BetRecord betRecord) { this.betHistory.put(betRecord.getTime(), betRecord); }
 
     public Player(String name) {
         this.name = name;
         this.limitChangeBalance = 100_000;
         this.availableBonuses = new TreeMap<>();
+        this.freeBetBonuses = new TreeMap<>();
+        this.depositBonuses = new TreeMap<>();
+        this.betHistory = new BetHistory<>(25);
     }
 
     public String getName() { return this.name; }
@@ -68,6 +72,7 @@ public class Player {
     public double getWinRate() { return Math.round(((this.totalWins * 100.0) / this.totalGames) * 100.0) / 100.0; }
 
     public int getTotalGames() { return this.totalGames; }
+    public void updateTotalGames() { this.totalGames++; }
 
     public int getTotalWins() { return this.totalWins; }
     public void updateTotalWins() { this.totalWins++; this.totalGames++; }
@@ -102,33 +107,28 @@ public class Player {
     public void updateTotalLoseAmount(double value) { this.totalLoseAmount += value; }
 
     public TreeMap<Integer, Bonus> getAvailableBonuses() {
-        removeExpiredBonuses();
+        this.availableBonuses.entrySet().removeIf(entry -> entry.getValue().isExpired());
         return this.availableBonuses;
     }
     public void addAvailableBonus(Bonus bonus) { this.availableBonuses.put(bonus.getNumber(), bonus); }
     public void removeAvailableBonus(Bonus bonus) { this.availableBonuses.remove(bonus.getNumber()); }
-    private void removeExpiredBonuses() { availableBonuses.entrySet().removeIf(entry -> entry.getValue().isExpired()); }
 
     public boolean isSeeEmptyBonuses() { return this.isSeeEmptyBonuses; }
     public void setSeeEmptyBonuses() { this.isSeeEmptyBonuses = true; }
 
-    public DepositBonus getDepositBonus() { return this.depositBonus; }
-    public void addDepositBonus(DepositBonus depositBonus) { this.depositBonus = depositBonus; }
-    public void removeDepositBonus() { this.depositBonus = null; }
-    private double getAmountDepositBonus(double amount) {
-        double depositBonus = amount * (this.depositBonus.getPercent() / 100.0);
-        System.out.println(Utils.toInfo("System: ") + "Бонус к депозиту " + this.depositBonus.getPercent() + "% применен! Дополнительно начислили " + Utils.formatCurrency(depositBonus));
-        this.removeDepositBonus();
-        return depositBonus;
+    public TreeMap<Integer, FreeBetBonus> getFreeBetBonuses() {
+        this.freeBetBonuses.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        return this.freeBetBonuses;
     }
-    public boolean isDepositBonus() { return this.depositBonus != null; }
+    public void addFreeBetBonus(FreeBetBonus bonus) { this.freeBetBonuses.put(bonus.getNumber(), bonus); }
+    public void removeFreeBetBonus(FreeBetBonus bonus) { this.freeBetBonuses.remove(bonus.getNumber()); }
 
-    public FreeBetBonus getFreeBetBonus() { return this.freeBetBonus; }
-    public void setFreeBetBonus(FreeBetBonus freeBetBonus) { this.freeBetBonus = freeBetBonus; }
-    public boolean isFreeBetBonusActive() { return this.isFreeBetBonusActive; }
-    public void setFreeBetBonusActive(boolean isActive) { this.isFreeBetBonusActive = isActive; }
-
-
+    public TreeMap<Integer, DepositBonus> getDepositBonuses() {
+        this.depositBonuses.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        return this.depositBonuses;
+    }
+    public void addDepositBonus(DepositBonus bonus) { this.depositBonuses.put(bonus.getNumber(), bonus); }
+    public void removeDepositBonus(DepositBonus bonus) { this.depositBonuses.remove(bonus.getNumber()); }
 
     public boolean deposit(double amount, WhoChangePlayerBalance who) {
         if (amount <= 0) {
@@ -140,9 +140,22 @@ public class Player {
                 System.out.println(getMessageForLimitChangeBalance());
                 return false;
             }
-            if (this.isDepositBonus()) amount += getAmountDepositBonus(amount);
         }
         this.balance += amount;
+        return true;
+    }
+
+    public boolean deposit(double amount, DepositBonus depositBonus) {
+        if (amount <= 0) {
+            System.out.println(Utils.toError("System: ") + "Сумма должна быть положительной, больше 0!");
+            return false;
+        }
+        if (amount > limitChangeBalance) {
+            System.out.println(getMessageForLimitChangeBalance());
+            return false;
+        }
+
+        this.balance += (amount + depositBonus.getDepositBonusAmount(amount));
         return true;
     }
 

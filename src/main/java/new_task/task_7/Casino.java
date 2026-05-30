@@ -2,12 +2,15 @@ package new_task.task_7;
 
 import new_task.task_7.bet.Bet;
 import new_task.task_7.bet.BetType;
+import new_task.task_7.bet_history.BetRecord;
+import new_task.task_7.bet_history.BetResult;
 import new_task.task_7.bonuses.*;
 import new_task.task_7.action_panel.ActionPanel;
 import new_task.task_7.action_panel.ActionPanels;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class Casino {
     private static final Random RANDOM = new Random();
@@ -62,42 +65,67 @@ public final class Casino {
                 System.out.println(Utils.toError("System: ") + "Извините, мы не можем принять такую ставку. Максимальная ставка: " + Utils.formatCurrency(maxBet));
                 continue;
             }
-            return new Bet(BetType.REGULAR, betAmount);
+            return new Bet(betAmount);
         }
     }
 
     private Bet selectBetWithFreeBetCheck(double maxMultiplier) {
-        if (this.player.isFreeBetBonusActive()) {
-            //toDo получить freeBetBonuses, где они являются фрибетами, не истекшими
-            //toDO отфильтровать те фрибеты, которые имеют меньший кф, если пусто - то селект бет
-            if (maxMultiplier > player.getFreeBetBonus().getMaxMultiplier()) return selectBet(maxMultiplier);
+        TreeMap<Integer, FreeBetBonus> activatedFreeBetBonuses = player.getFreeBetBonuses();
+        if (!activatedFreeBetBonuses.isEmpty()) {
 
-            //toDo фильтровать фрибеты по мультиплаеру, которые мы сможем принять как ставку
-            int maxBetForFreeBet = (int) (this.balance / Multipliers.getClearMultiplier((maxMultiplier - 1)));
-            if (player.getFreeBetBonus().getFreeBet() > maxBetForFreeBet) return selectBet(maxMultiplier);
+            TreeMap<Integer, FreeBetBonus> availableFreeBet = activatedFreeBetBonuses.entrySet().stream()
+                    .filter(entry -> entry.getValue().getMaxMultiplier() >= maxMultiplier)
+                    .filter(entry -> entry.getValue().getFreeBet() < ((int) (this.balance / Multipliers.getClearMultiplier(maxMultiplier - 1))))
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            Map.Entry::getValue,
+                            (v1, v2) -> v1,
+                            TreeMap::new
+                    ));
 
-            //toDo если же таких фрибетов нет, то отправляем в selectBet
-            //toDo если такой 1 фрибет, то сразу предлагаем использовать его, если согласен, то возвращаем выбранную ставку с фрибетом
-            // если несколько пишем что хотим ли мы вообще юзать фрибет?
-            //toDo если да, то показываем список и просим номер фрибета
-            //toDo когда он его выбирает, сетим его в ставку и удаляем из freeBetBonuses
+            if (availableFreeBet.isEmpty()) return selectBet(maxMultiplier);
 
-            //toDo если выиграет или проиграет, то расчитываем ставку
-            //toDo иначе, если возврат, возвращаем фрибет в freeBetBonuses
+            boolean isOnlyOneAvailableFreeBet = availableFreeBet.size() == 1;
 
-            System.out.println(Utils.toInfo("\nSystem: ") + "У вас есть активный фрибет на " + Utils.formatCurrency(player.getFreeBetBonus().getFreeBet()));
-            System.out.println(
-                    """
-                    0. Пропустить
-                    1. Использовать фрибет
-                    """
-            );
+            if (isOnlyOneAvailableFreeBet) {
+                FreeBetBonus freeBetBonus = availableFreeBet.firstEntry().getValue();
+                System.out.println(Utils.toInfo("\nSystem: ") + "Для игры доступен единственный фрибет на " + Utils.toSuccess(Utils.formatCurrency(freeBetBonus.getFreeBet())) + " с Кф до " + Utils.toAccent("x" + freeBetBonus.getMaxMultiplier())
+                        + "\n" +
+                        """
+                        0. Пропустить
+                        1. Использовать фрибет
+                        """
+                );
+            } else {
+                System.out.println(Utils.toInfo("\nSystem: ") + "У вас есть несколько доступных фрибетов для игры!"
+                        + "\n" +
+                        """
+                        0. Пропустить
+                        1. Выбрать фрибет
+                        """
+                );
+            }
 
             int choice = Utils.whatToDoNext(1);
 
             if (choice == 1) {
-                player.setFreeBetBonusActive(false);
-                return new Bet(BetType.FREE_BET, player.getFreeBetBonus().getFreeBet());
+                if (isOnlyOneAvailableFreeBet) {
+                    player.removeFreeBetBonus(availableFreeBet.firstEntry().getValue());
+                    return new Bet(availableFreeBet.firstEntry().getValue());
+                } else {
+                    System.out.println("\nВыберите один из бонусов:");
+                    availableFreeBet.values().forEach(System.out::println);
+                    System.out.println();
+                    while (true) {
+                        int selectedBonusNumber = Utils.nextInt("Номер бонуса: ");
+                        if (availableFreeBet.containsKey(selectedBonusNumber)) {
+                            FreeBetBonus selectedFreeBetBonus = availableFreeBet.get(selectedBonusNumber);
+                            player.removeFreeBetBonus(selectedFreeBetBonus);
+                            return new Bet(selectedFreeBetBonus);
+                        }
+                        System.out.println(Utils.toError("System: ") + "Выберите доступный бонус");
+                    }
+                }
             }
         }
         return selectBet(maxMultiplier);
@@ -122,35 +150,47 @@ public final class Casino {
         System.out.println(Utils.toInfo("\nВаша ставка: ") + freeBetText + Utils.formatCurrency(bet.getAmount()) + "\n");
     }
 
-    private void returnBet(Bet bet) {
+    //toDo перейти с boolean isWin на BetResult ?
+    private void returnBet(String gameName, Bet bet) {
         if (bet.getType() == BetType.REGULAR) {
             System.out.print(Utils.toInfo("System: ") + "Возврат ставки. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toInfo(" -> "));
             player.deposit(bet.getAmount(), WhoChangePlayerBalance.CASINO);
             this.balance -= bet.getAmount();
             System.out.println(Utils.formatCurrency(this.player.getBalance()) + "\n");
+        } else {
+            this.player.addFreeBetBonus(bet.getFreeBetBonus());
         }
+        this.player.addBetToHistory(new BetRecord(gameName, bet, BetResult.RETURN));
     }
 
-    private void resolveBet(boolean isWin, Bet bet, double winAmount) {
+    private void resolveBet(String gameName, boolean isWin, Bet bet, double winAmount) {
         if (isWin) {
             System.out.println(Utils.toSuccess("Ваш выигрыш: ") + Utils.formatCurrency(winAmount));
+
             if (winAmount > this.balance) {
                 if (bet.getType() == BetType.REGULAR) {
                     System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Текущая ставка была возвращена.");
-                    returnBet(bet);
-                    return;
+                } else {
+                    System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Фрибет был возвращен.");
                 }
-                System.out.println(Utils.toError("System: ") + "У казино недостаточно средств для выплаты! Фрибет был возвращен.");
-                this.player.setFreeBetBonusActive(true);
+                //toDo пока костыль
+                this.player.updateTotalGames();
+
+                returnBet(gameName, bet);
+                return;
             }
+
             System.out.print(Utils.toInfo("System: ") + "Зачисление выигрыша. Ваш баланс " + Utils.formatCurrency(this.player.getBalance()) + Utils.toSuccess(" -> "));
             this.player.deposit(winAmount, WhoChangePlayerBalance.CASINO);
             this.balance -= winAmount;
             System.out.println(Utils.formatCurrency(this.player.getBalance()));
+
             if (bet.getType() == BetType.REGULAR) {
                 updatePlayerStatistic(true, winAmount - bet.getAmount());
+                this.player.addBetToHistory(new BetRecord(gameName, bet, winAmount));
             } else {
                 updatePlayerStatistic(true, winAmount);
+                this.player.addBetToHistory(new BetRecord(gameName, bet, winAmount - bet.getAmount()));
             }
         } else {
             if (bet.getType() == BetType.REGULAR) {
@@ -160,6 +200,7 @@ public final class Casino {
                 System.out.println(Utils.toError("Проигрыш: ") + "Фрибет проиграл");
                 updatePlayerStatistic(false, 0);
             }
+            this.player.addBetToHistory(new BetRecord(gameName, bet, BetResult.LOSE));
             System.out.println(Utils.toInfo("System: ") + "Ваш баланс " + Utils.formatCurrency(this.player.getBalance()));
         }
         System.out.println();
@@ -186,16 +227,6 @@ public final class Casino {
         LocalDateTime fromData = LocalDateTime.now();
         int initialBonusSize = player.getAvailableBonuses().size();
         int totalGames = player.getTotalGames();
-
-        //test
-        if (totalGames == 1) player.addAvailableBonus(new FreeBetBonus(10_000, 9.5, fromData, 0, 4));
-        if (totalGames == 2) player.addAvailableBonus(new FreeBetBonus(10_000, 7.0, fromData, 0, 4));
-        if (totalGames == 3) player.addAvailableBonus(new FreeBetBonus(10_000, 6.0, fromData, 0, 4));
-        if (totalGames == 4) player.addAvailableBonus(new FreeBetBonus(10_000, 5.0, fromData, 0, 4));
-        if (totalGames == 5) player.addAvailableBonus(new FreeBetBonus(10_000, 4.0, fromData, 0, 4));
-        if (totalGames == 6) player.addAvailableBonus(new FreeBetBonus(10_000, 3.0, fromData, 0, 4));
-        if (totalGames == 7) player.addAvailableBonus(new FreeBetBonus(10_000, 2.0, fromData, 0, 4));
-        if (totalGames == 8) player.addAvailableBonus(new FreeBetBonus(10_000, 1.5, fromData, 0, 4));
 
         switch (totalGames % 100) {
             case 16 -> player.addAvailableBonus(new FreeBetBonus(5_000, 3.0, fromData, 0, 6));
@@ -443,7 +474,8 @@ public final class Casino {
     }
 
     private void playSlotsGame(int slotCount) throws InterruptedException {
-        System.out.println(Utils.toInfo("x" + slotCount + " Slots: ") + "Чтобы крутануть слоты, укажите ставку!\n");
+        String gameName = "x" + slotCount + " Slots";
+        System.out.println(Utils.toInfo(gameName + ": ") + "Чтобы крутануть слоты, укажите ставку!\n");
 
         // Средне-ожидаемый выигрыш кроме 2ух слотов
         double maxMultiplier = switch (slotCount) {
@@ -466,7 +498,7 @@ public final class Casino {
         double winAmount = calculateSlotGameResult(bet, results);
         boolean isWin = winAmount > 0;
 
-        resolveBet(isWin, bet, winAmount);
+        resolveBet(gameName, isWin, bet, winAmount);
     }
 
     private void playEven() throws InterruptedException {
@@ -503,7 +535,7 @@ public final class Casino {
             }
         }
 
-        resolveBet(isWin, bet, winAmount);
+        resolveBet(this.GAME_NAME_ODDS_OR_EVEN, isWin, bet, winAmount);
     }
 
     //toDo
@@ -554,7 +586,7 @@ public final class Casino {
             System.out.println("Поздравляем! Вы угадали!");
         }
 
-        resolveBet(isWin, bet, winAmount);
+        resolveBet(this.GAME_NAME_FLIP_COIN, isWin, bet, winAmount);
     }
 
     private void playHigherOrLower() throws InterruptedException {
@@ -595,7 +627,7 @@ public final class Casino {
             System.out.println("Поздравляем, Вы угадали!");
         }
 
-        resolveBet(isWin, bet, winAmount);
+        resolveBet(this.GAME_NAME_HIGHER_PR_LOWER, isWin, bet, winAmount);
     }
 
     private void playWords() throws InterruptedException {
@@ -676,7 +708,7 @@ public final class Casino {
             // Проверяем Blackjack у дилера
             if (getHandValue(dealerHand) == 21 && dealerHand.size() == 2) {
                 System.out.println("У дилера тоже Black Jack! Ничья.");
-                returnBet(bet);
+                returnBet(this.GAME_NAME_BLACKJACK, bet);
                 return;
             } else {
                 System.out.println("Двадцать одно! Black Jack! 🎉");
@@ -779,7 +811,7 @@ public final class Casino {
                 isWin = true;
             } else if (playerValue == dealerValue) {
                 System.out.println("Ничья. Ставка будет возвращена");
-                returnBet(bet);
+                returnBet(this.GAME_NAME_BLACKJACK, bet);
                 return;
             } else {
                 System.out.println("Увы... Дилер выиграл");
@@ -789,7 +821,7 @@ public final class Casino {
         double multiplier = Multipliers.getMultiplierForBlackjack(isBlackjack, isDoubleDown);
         double winAmount = bet.getAmount() * Multipliers.getActualMultiplier(bet, multiplier);
 
-        resolveBet(isWin, bet, winAmount);
+        resolveBet(this.GAME_NAME_BLACKJACK, isWin, bet, winAmount);
     }
 
     private List<Card> createDeck(int decksCount) {

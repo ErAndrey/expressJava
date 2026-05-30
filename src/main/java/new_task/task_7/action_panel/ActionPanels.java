@@ -26,13 +26,13 @@ public class ActionPanels {
         MENU.put(2, List.of("Главная", "Выход", "Профиль", "Депозит", "Бонус", "Азарт", "Главная"));
         MENU.put(3, List.of("~", "0", "1", "2", "3", "4", "~"));
 
-        CONFIRMED_PROFILE.put(1, List.of("~", "<", "~"));
-        CONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "Профиль"));
-        CONFIRMED_PROFILE.put(3, List.of("~", "0", "~"));
+        CONFIRMED_PROFILE.put(1, List.of("~", "<", "#", "~"));
+        CONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "История игр", "Профиль"));
+        CONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "~"));
 
-        UNCONFIRMED_PROFILE.put(1, List.of("~", "<", "^", "~"));
-        UNCONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "Подтвердить", "Профиль"));
-        UNCONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "~"));
+        UNCONFIRMED_PROFILE.put(1, List.of("~", "<", "#", ">", "~"));
+        UNCONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "История игр", "Подтвердить", "Профиль"));
+        UNCONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "2", "~"));
 
         HAVE_BONUSES.put(1, List.of("~", "<", "?", "*", "+", "~"));
         HAVE_BONUSES.put(2, List.of("Бонус", "Назад", "Получение", "Виды бонуса", "Применить", "Бонус"));

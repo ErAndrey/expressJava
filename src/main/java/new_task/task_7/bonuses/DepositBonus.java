@@ -13,9 +13,13 @@ public class DepositBonus extends Bonus {
     }
 
     public double getPercent() { return this.percent; }
+    public double getDepositBonusAmount(double depositAmount) {
+        double result = (depositAmount * percent) / 100.0;
+        return Math.round(result * 100.0) / 100.0;
+    }
 
     @Override
     public String toString() {
-        return super.toString() + "получи дополнительные " + Utils.toSuccess(this.percent + "%") + " при следующем пополнении!";
+        return super.toString() + "получи дополнительные " + Utils.toSuccess(this.percent + "%") + " при пополнении!";
     }
 }

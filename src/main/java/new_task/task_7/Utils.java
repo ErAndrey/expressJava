@@ -2,6 +2,8 @@ package new_task.task_7;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.InputMismatchException;
 import java.util.Map;
 import java.util.Random;
@@ -12,6 +14,9 @@ public final class Utils {
     private static final Random RANDOM = new Random();
     private static final DecimalFormat CURRENCY_INT_FORMATTER;
     private static final DecimalFormat CURRENCY_DOUBLE_FORMATTER;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER;
+    private static final DateTimeFormatter DATE_FORMATTER;
+    private static final DateTimeFormatter TIME_FORMATTER;
 
     private static final char CURRENCY = '₽';
     private static final String SPACE = "   ";
@@ -30,6 +35,9 @@ public final class Utils {
         symbols.setDecimalSeparator(',');
         CURRENCY_INT_FORMATTER = new DecimalFormat("#,###", symbols);
         CURRENCY_DOUBLE_FORMATTER = new DecimalFormat("#,##0.00", symbols);
+        DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
+        DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy");
+        TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     }
 
     public static boolean validateEmail(String email) {
@@ -89,6 +97,10 @@ public final class Utils {
         }
         return CURRENCY_DOUBLE_FORMATTER.format(amount) + " " + CURRENCY;
     }
+
+    public static String formatDateTime(LocalDateTime dateTime) { return DATE_TIME_FORMATTER.format(dateTime); }
+    public static String formatDate(LocalDateTime date) { return DATE_FORMATTER.format(date); }
+    public static String formatTime(LocalDateTime time) { return TIME_FORMATTER.format(time); }
 
     public static boolean askToContinue() throws InterruptedException {
         System.out.println(
