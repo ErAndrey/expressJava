@@ -311,6 +311,16 @@ public class Multipliers {
         return (isBlackjack ? (isDoubleDown ? 2.75 : 2.5) : (isDoubleDown ? 2.25 : 2.0));
     }
 
+    public static double getMultiplierForRPS(int toHowManyWins) {
+        return switch (toHowManyWins) {
+            case 1 -> 2.01;
+            case 3 -> 4.0;
+            case 5 -> 8.0;
+            case 7 -> 15.0;
+            default -> 2.0;
+        };
+    }
+
     public static double getClearMultiplier(double multiplier) {
         return Math.ceil(multiplier * 100.0) / 100.0;
     }

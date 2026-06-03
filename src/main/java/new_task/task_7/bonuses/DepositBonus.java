@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 public class DepositBonus extends Bonus {
     private final double percent;
 
-    public DepositBonus(double percent, LocalDateTime fromDate, int daysAvailable, int hoursAvailable) {
-        super(fromDate, daysAvailable, hoursAvailable);
+    public DepositBonus(double percent, LocalDateTime fromDate, int hoursAvailable, int minutesAvailable) {
+        super(fromDate, hoursAvailable, minutesAvailable);
         this.percent = percent;
     }
 

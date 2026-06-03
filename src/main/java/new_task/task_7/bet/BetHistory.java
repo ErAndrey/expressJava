@@ -1,4 +1,4 @@
-package new_task.task_7.bet_history;
+package new_task.task_7.bet;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

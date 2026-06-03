@@ -3,7 +3,6 @@ package new_task.task_7.bonuses;
 import new_task.task_7.Utils;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public abstract class Bonus {
     private static int count;
@@ -12,9 +11,9 @@ public abstract class Bonus {
     private final LocalDateTime toDate;
     private boolean isActivated;
 
-    public Bonus(LocalDateTime fromDate, int daysAvailable, int hoursAvailable) {
+    public Bonus(LocalDateTime fromDate, int hoursAvailable, int minutesAvailable) {
         this.number = ++count;
-        this.toDate = fromDate.plusDays(daysAvailable).plusHours(hoursAvailable);
+        this.toDate = fromDate.plusHours(hoursAvailable).plusMinutes(minutesAvailable);
     }
 
     public final int getNumber() { return this.number; }

@@ -1,7 +1,7 @@
 package new_task.task_7;
 
-import new_task.task_7.bet_history.BetHistory;
-import new_task.task_7.bet_history.BetRecord;
+import new_task.task_7.bet.Bet;
+import new_task.task_7.bet.BetHistory;
 import new_task.task_7.bonuses.*;
 import new_task.task_7.action_panel.ActionPanel;
 import new_task.task_7.action_panel.ActionPanels;
@@ -113,7 +113,6 @@ public class AuthService {
     }
 
     //toDo Удалить профиль
-    //toDo История ставок
     private void profile(Player player) {
         while (true) {
             boolean isConfirmedAccount = player.isConfirmedAccount();
@@ -129,30 +128,49 @@ public class AuthService {
             System.out.println("Имя: " + player.getName());
             System.out.println("Почта: " + player.getEmail());
             System.out.println("Подтвержден: " + isConfirmedText);
-            System.out.println("Лимит на депозит: " + Utils.formatCurrency(player.getLimitChangeBalance()));
+            System.out.println("Лимит на депозит: " + Utils.formatCurrency(player.getLimitChangeBalance()) + "\n");
 
-            if (player.getTotalGames() != 0) {
-                System.out.println("\nПроцент побед         " + player.getWinRate() + "%");
-                System.out.println("Количество выигрышей  " + player.getTotalWins());
-                System.out.println("Количество проигрышей " + player.getTotalLose());
-                System.out.println("Лучшая серия побед    " + player.getMaxWins());
-                System.out.println("Текущая серия побед   " + player.getCurrentWins());
-                System.out.println("\nМаксимальный выигрыш  " + Utils.formatCurrency(player.getMaxWinAmount()));
-                System.out.println("Сумма выигрышей       " + Utils.formatCurrency(player.getTotalWinAmount()));
-                System.out.println("Сумма проигрышей      " + Utils.formatCurrency(player.getTotalLoseAmount()));
-            }
-
-            System.out.println("\nСумма пополнений      " + Utils.formatCurrency(player.getAllIncome()));
-            System.out.println("Сумма выводов         " + Utils.formatCurrency(player.getAllOutcome()));
-            System.out.println("Текущий баланс        " + Utils.formatCurrency(player.getBalance()) + "\n");
-
-            int choice = isConfirmedAccount ? Utils.whatToDoNext(1) : Utils.whatToDoNext(2);
+            int choice = isConfirmedAccount ? Utils.whatToDoNext(2) : Utils.whatToDoNext(3);
 
             switch (choice) {
                 case 0 -> { return; }
-                case 1 -> seeBetHistory(player);
-                case 2 -> confirmPlayerAccount(player);
+                case 1 -> seeStatistics(player);
+                case 2 -> seeBetHistory(player);
+                case 3 -> confirmPlayerAccount(player);
             }
+        }
+    }
+
+    private void seeStatistics(Player player) {
+        while (true) {
+            System.out.println(Utils.toInfo("\nSystem: ") + "Статистика аккаунта:");
+            if (player.getTotalGames() != 0) {
+                System.out.println("\nПроцент побед          " + player.getWinRate() + "%");
+                System.out.println("Количество игр         " + player.getTotalGames());
+
+                System.out.println("\nВсего выигрышей        " + Utils.toSuccess("" + player.getTotalWins()));
+                System.out.println("Текущая серия          " + player.getCurrentWins());
+                System.out.println("Наибольшая серия       " + player.getMaxWins());
+                System.out.println("Максимальный выигрыш   " + Utils.formatCurrency(player.getMaxWinAmount()));
+                System.out.println("Сумма выигрышей        " + Utils.formatCurrency(player.getTotalWinAmount()));
+
+                System.out.println("\nВсего проигрышей       " + Utils.toError("" + player.getTotalLose()));
+                System.out.println("Текущая серия          " + player.getCurrentLose());
+                System.out.println("Наибольшая серия       " + player.getMaxLose());
+                System.out.println("Максимальный проигрыш  " + Utils.formatCurrency(player.getMaxLoseAmount()));
+                System.out.println("Сумма проигрышей       " + Utils.formatCurrency(player.getTotalLoseAmount()));
+
+                System.out.println("\nВсего возвратов        " + Utils.toInfo("" + player.getTotalReturns()));
+                System.out.println("Сумма возвратов        " + Utils.formatCurrency(player.getTotalReturnAmount()));
+            }
+
+            System.out.println("\nСумма пополнений       " + Utils.formatCurrency(player.getAllIncome()));
+            System.out.println("Сумма выводов          " + Utils.formatCurrency(player.getAllOutcome()));
+            System.out.println("Текущий баланс         " + Utils.formatCurrency(player.getBalance()) + "\n");
+
+            System.out.println(Utils.toInfo("System: ") + "Чтобы вернуться назад выберите 0\n");
+
+            if (Utils.whatToDoNext(0) == 0) return;
         }
     }
 
@@ -172,7 +190,7 @@ public class AuthService {
 
     private void seeBetHistory(Player player) {
         while (true) {
-            BetHistory<LocalDateTime, BetRecord> betHistory = player.getBetHistory();
+            BetHistory<LocalDateTime, Bet> betHistory = player.getBetHistory();
 
             if (betHistory.isEmpty()) {
                 System.out.println(Utils.toInfo("\nSystem: ") + "История игр пуста");
@@ -183,9 +201,7 @@ public class AuthService {
 
             System.out.println(Utils.toInfo("\nSystem: ") + "Чтобы вернуться назад выберите 0\n");
 
-            int choice = Utils.whatToDoNext(0);
-
-            if (choice == 0) return;
+            if (Utils.whatToDoNext(0) == 0) return;
         }
     }
 
@@ -200,7 +216,7 @@ public class AuthService {
             if (haveDepositBonuses) {
                 if (isOnlyOneDepositBonus) {
                     DepositBonus depositBonus = availableDepositBonuses.firstEntry().getValue();
-                    System.out.println(Utils.toInfo("System: ") + "Доступен бонус на " + Utils.toSuccess(depositBonus.getPercent() + "%") + " при пополнении баланса!");
+                    System.out.println(Utils.toInfo("System: ") + "Доступен бонус на дополнительные " + Utils.toSuccess(depositBonus.getPercent() + "%") + " при пополнении баланса!");
                 } else {
                     System.out.println(Utils.toInfo("System: ") + "У вас есть несколько доступных бонусов для пополнения баланса!");
                 }
@@ -311,7 +327,7 @@ public class AuthService {
 
             if (isHaveAvailableBonuses) {
                 System.out.println(ActionPanels.ACTION_PANELS.get(ActionPanel.HAVE_BONUSES));
-                System.out.println(Utils.toInfo("Доступные бонусы: ") + "Успейте применить, пока предложение активно!\n");
+                System.out.println(Utils.toInfo("Доступные бонусы: ") + "Успейте применить и воспользоваться, пока предложение активно!\n");
                 availableBonuses.values().forEach(System.out::println);
                 System.out.println();
             } else {
@@ -360,9 +376,7 @@ public class AuthService {
 
             System.out.println(Utils.toInfo("System: ") + "Чтобы вернуться назад выберите 0\n");
 
-            int choice = Utils.whatToDoNext(0);
-
-            if (choice == 0) return;
+            if (Utils.whatToDoNext(0) == 0) return;
         }
     }
 
@@ -378,9 +392,7 @@ public class AuthService {
 
             System.out.println(Utils.toInfo("System: ") + "Чтобы вернуться назад выберите 0\n");
 
-            int choice = Utils.whatToDoNext(0);
-
-            if (choice == 0) return;
+            if (Utils.whatToDoNext(0) == 0) return;
         }
     }
 
@@ -419,6 +431,6 @@ public class AuthService {
         player.removeAvailableBonus(bonus);
         player.addFreeBetBonus(bonus);
         bonus.activate();
-        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " - фрибет на " + Utils.formatCurrency(bonus.getFreeBet()) + " активирован, можете воспользоваться им в следующей игре с Кф до " + Utils.toAccent("x" + bonus.getMaxMultiplier()));
+        System.out.println(Utils.toSuccess("System: ") + "Бонус " + Utils.toAccent("#" + bonus.getNumber()) + " - фрибет на " + Utils.formatCurrency(bonus.getFreeBetAmount()) + " активирован, можете воспользоваться им в следующей игре с Кф до " + Utils.toAccent("x" + bonus.getMaxMultiplier()));
     }
 }

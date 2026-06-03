@@ -26,13 +26,13 @@ public class ActionPanels {
         MENU.put(2, List.of("Главная", "Выход", "Профиль", "Депозит", "Бонус", "Азарт", "Главная"));
         MENU.put(3, List.of("~", "0", "1", "2", "3", "4", "~"));
 
-        CONFIRMED_PROFILE.put(1, List.of("~", "<", "#", "~"));
-        CONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "История игр", "Профиль"));
-        CONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "~"));
+        CONFIRMED_PROFILE.put(1, List.of("~", "<", "%", "#", "~"));
+        CONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "Статистика аккаунта", "История игр", "Профиль"));
+        CONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "2", "~"));
 
-        UNCONFIRMED_PROFILE.put(1, List.of("~", "<", "#", ">", "~"));
-        UNCONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "История игр", "Подтвердить", "Профиль"));
-        UNCONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "2", "~"));
+        UNCONFIRMED_PROFILE.put(1, List.of("~", "<", "%", "#", ">", "~"));
+        UNCONFIRMED_PROFILE.put(2, List.of("Профиль", "Назад", "Статистика аккаунта", "История игр", "Подтвердить", "Профиль"));
+        UNCONFIRMED_PROFILE.put(3, List.of("~", "0", "1", "2", "3", "~"));
 
         HAVE_BONUSES.put(1, List.of("~", "<", "?", "*", "+", "~"));
         HAVE_BONUSES.put(2, List.of("Бонус", "Назад", "Получение", "Виды бонуса", "Применить", "Бонус"));
@@ -46,9 +46,9 @@ public class ActionPanels {
         BALANCE.put(2, List.of("Депозит", "Назад", "Пополнить", "Вывести", "Депозит"));
         BALANCE.put(3, List.of("~", "0", "1", "2", "~"));
 
-        PLAY.put(1, List.of("~", "<", "777", "1/2", "%", ">/<", "...", "21!", "~"));
-        PLAY.put(2, List.of("Азарт", "Назад", "Slots", "Evens", "Flips", "Hg/Lw", "Words", "BJack", "Азарт"));
-        PLAY.put(3, List.of("~", "0", "1", "2", "3", "4", "5", "6", "~"));
+        PLAY.put(1, List.of("~", "<", "777", "1/2", "%", ">/<", "...", "21!", "*<#", "~"));
+        PLAY.put(2, List.of("Азарт", "Назад", "Slots", "Evens", "Flips", "Hg/Lw", "Words", "BJack", "RPS", "Азарт"));
+        PLAY.put(3, List.of("~", "0", "1", "2", "3", "4", "5", "6", "7", "~"));
     }
 
     private static String getActionPanel(TreeMap<Integer, List<String>> table) {

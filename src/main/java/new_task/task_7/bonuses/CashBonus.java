@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 public class CashBonus extends Bonus {
     private final double amount;
 
-    public CashBonus(double amount, LocalDateTime fromDate, int daysAvailable, int hoursAvailable) {
-        super(fromDate, daysAvailable, hoursAvailable);
+    public CashBonus(double amount, LocalDateTime fromDate, int hoursAvailable, int minutesAvailable) {
+        super(fromDate, hoursAvailable, minutesAvailable);
         this.amount = amount;
     }
 
