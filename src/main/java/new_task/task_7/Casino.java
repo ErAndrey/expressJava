@@ -1068,6 +1068,8 @@ public final class Casino {
             }
             bet.setResult(LOSE);
         }
+        
+        System.out.println();
 
         resolveBet(bet);
     }
