@@ -1,49 +1,109 @@
 package world_wars;
 
-import world_wars.ccpu.Consume;
-import world_wars.ccpu.Create;
-import world_wars.ccpu.Upgrade;
-
 public class Main {
 
     public static void main(String[] args) {
-        State state = new State();
 
-        System.out.println("Upgrade: ");
-        System.out.println(Upgrade.getUpgrade(state.getCapital()));
-        Upgrade.getToUpgrade().forEach((type, upgrade) -> System.out.println(type + " : " + upgrade));
-        System.out.println();
-
-        System.out.println("Create: ");
-
-        System.out.println(state.getCapital() + " lvl " + state.getCapital().getLvl());
-        System.out.println("builds: " + Create.getAvailableBuildToCreate(state));
-        System.out.println("units: " + Create.getAvailableUnitToCreate(state));
-        state.getCapital().upgrade();
-
-        System.out.println(state.getCapital() + " lvl " + state.getCapital().getLvl());
-        System.out.println("builds: " + Create.getAvailableBuildToCreate(state));
-        System.out.println("units: " + Create.getAvailableUnitToCreate(state));
-        state.getCapital().upgrade();
-
-        System.out.println(state.getCapital() + " lvl " + state.getCapital().getLvl());
-        System.out.println("builds: " + Create.getAvailableBuildToCreate(state));
-        System.out.println("units: " + Create.getAvailableUnitToCreate(state));
-        state.getCapital().upgrade();
-
-        System.out.println();
-
-        System.out.println("Consume: ");
-        System.out.println("Builds: ");
-        Consume.getBuildConsuming().forEach((type, map) -> System.out.println(type + " : " + map));
-        System.out.println("Units: ");
-        Consume.getUnitConsuming().forEach((type, currency) -> System.out.println(type + " : " + currency));
-
-        System.out.println();
-
-
+        new Game().start();
 
     }
+
+    /**
+     * Торговля + обновление дипломатии
+     *
+     * 1. Trade - здание, позволяющее вести торговлю
+     *
+     * При наличии в штате
+     *
+     * По идее, торгует игрок.
+     * А ресурсы в штатах у игрока.
+     *
+     * Значит, нужно как-то перебросить ресурсы к игроку. Это как симуляция перевозок грузов.
+     *
+     * Значит на самом высоком уровне, уровне игрока храним валюту - своего рода централизованны склад.
+     * Currency toTrade; - баланс игрока для торговли
+     *
+     * Currency toTrade можно будет ВЗЯТЬ ИЗ ШТАТА, ПЕРЕВЕСТИ НА ТОРГОВЛЮ, ПОПОЛНИТЬ РЕЗУЛЬТАТОМ ТОРГОВЛИ, ВЕРНУТЬ С ТОРГОВЛИ, ПЕРЕВЕСТИ В ШТАТ
+     *
+     * Таким образом игрок сможет ДОСТАВАТЬ из штатов ресурсы для торговли. А так же, ПОСТАВЛЯТЬ обратно в штат, то что имеет на балансе.
+     * (То есть если у тебя 3 штата, но только 1 может торговать), то забрать ресурсы на торговлю можно лишь с 1ого штата и так же туда их и поставить после торговли.
+     *
+     * Если тебе разрушают здание для торговли в штате, то по сути, Currency toTrade - остается замороженным на балансе игрока ?
+     *
+     * boolean canTrade = states.values().anyMath(State::isCanTrade);
+     *
+     * if (canTrade) то торгуй, забирай с торговли, обменивайся, покупай, забирай со штата, поставляй в штат
+     * else сидишь афк, пока не создашь новое здание для торговли
+     *
+     * ? может добавить ограничение, что здание в штате может быть одно и если ни у одного твоего штата не осталось здания торговли, то ты теряешь то что выводил для торговли
+     *
+     * Торговать можно с Друзьями и Союзниками. Здание Trade может быть макс 3 уровня. Тогда для каждого уровня можно опредлить общее количество валюты для экспорта и импорта
+     * Экспорт и импорт по lvl
+     * int maxDeliveryCurrencies;
+     * 1 lvl - 30
+     * 2 lvl - 60
+     * 3 lvl - 100
+     *
+     * + Уже есть метод для получения количества зданий, производящий конкретный CurrencyType, можно завязться на него
+     * Например, имеешь 1 лесопилку, 2 шахты, 3 нефтедобычи, 5 ферм
+     * Значит, раз за ход можешь вывести на баланс игрока 1 дерево, 2 руды, 3 нефти, 5 еды (11/maxDeliveryCurrencies)
+     * Но торговать можешь всем пулом Currency
+     *
+     * При импорте, можешь выбирать что поставить и в какой штат, так же ограничиваясь maxDeliveryCurrencies, но при этом, поставка (зачисление) будет на следующем ходу.
+     * Может еще позволять выбирать доступность RequestTrade по RelationType ? List<RelationType> availableFor;
+     * ALL - всем, не включая WAR
+     * 1 lvl - ALL - всем
+     * 2 lvl - ALL, FRIEND - всем / друзьям
+     * 3 lvl - ALL, FRIEND, UNION - всем / друзьям / союзникам
+     *
+     * Далее делаем класс TradeManager который будет хранить в себе список TradeRequest,
+     *
+     * TradeRequest содержит Player playerFrom - кто, Map<CurrencyType,Integer> toTrade - чего и сколько, Map<CurrencyType,Integer> toTrade - чего и сколько;
+     *
+     * Доступ к этому списку элементов TradeRequest-ов будет осуществляться по player.relations() - фильтроваться и видны только друзьям или союзникам
+     *
+     * Логика покупки - как у магазина, берешь поштучно, пополняешь баланс игрока
+     *
+     */
+
+    /**
+     * Дипломатия:
+     * 1. DECLARE_WAR
+     * Объявить войну можно только тогда, когда ты в нейтралитете с игроком:
+     *      Объявить войну одному игроку -> война только с ним +
+     *      Объявить войну игроку в союзе -> война со всеми участниками союза +
+     *
+     * 2. DECLARE_NEUTRAL
+     * Объявить нейтралитет можно только тогда, когда ты дружишь с игроком +
+     *
+     * 3. NEUTRAL_REQUEST
+     * Запросить нейтралитет можно только тогда, когда ты воюешь с игроком +
+     *
+     * 4. FRIEND_REQUEST
+     * Запросить дружбу можно только тогда, когда ты в нейтралитете с игроком +
+     *
+     * 5. UNION_REQUEST
+     * Запросить создание союза можно только тогда, когда ты дружишь с игроком +
+     *      при этом - у вас нет союзников +
+     *
+     * 6. UNION_APPROVE
+     * Попроситься в союз можно только тогда, когда ты дружишь с игроком, который состоит в союзе +
+     *      при этом - ты не воюешь ни с одним союзником игрока +
+     *
+     * 7. UNION_INVITE
+     * Пригласить в союз можно только тогда, когда ты дружишь с игроком и состоишь в союзе
+     *      при этом - игрок не воюет ни с одним твоим союзником +
+     *
+     * 8. UNION_LEAVE
+     * Покинуть союз можно только тогда, когда ты находишься в союзе с игроком:
+     *      Покинуть союз с одним игроком -> нейтралитет только с ним +
+     *      Покинуть союз с несколькими игроками -> нейтралитет со всеми союзниками +
+     *
+     * 9. PROPOSE_UNION_ATTACK_A_PLAYER
+     * Предложить союзу напасть на игрока можно только тогда, когда ты находишься в союзе и игрок имеет нейтралитет с тобой +
+     *      при этом - игрок не воюет ни с одним твоим союзником +
+     *      если игрок был в союзе - то война между союзами (1 союз vs 2 союз) +
+     */
 
     /**
      *
@@ -62,7 +122,7 @@ public class Main {
      * Иконки:
      *
      * Buttons : 0️⃣1️⃣2️⃣3️⃣4️⃣5️⃣6️⃣7️⃣8️⃣9️⃣
-     * ❓❔❌ 💞
+     * ❓❔❌ 💞 0️⃣
      * Tech (lvl) / 🎓 : ❗❕❕❕ . ❗❗❕❕ . ❗❗❗❕ . ❗❗❗❗ / ❕❗❗❗ / ❕❕❗❗ / ❕❕❕❗ / ❕❕❕❕
      * Destroy Build / 🔄 / 🧨
      * Upgrade Build / ⏫ / ✨ / 🔧

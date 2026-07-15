@@ -1,6 +1,6 @@
 package world_wars.entity;
 
-import world_wars.Icon;
+import world_wars.general.Icon;
 
 public enum UnitType {
     SCOUT(Icon.SCOUT),

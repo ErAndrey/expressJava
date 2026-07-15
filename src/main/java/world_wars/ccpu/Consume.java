@@ -1,6 +1,6 @@
 package world_wars.ccpu;
 
-import world_wars.Currency;
+import world_wars.general.Currency;
 import world_wars.entity.Build;
 import world_wars.entity.BuildType;
 import world_wars.entity.Unit;
@@ -11,17 +11,15 @@ import java.util.Map;
 
 public class Consume {
     private final static Map<BuildType, Map<Integer, Currency>> BUILD_CONSUMING = new HashMap<>();
+    private final static Map<UnitType, Currency> UNIT_CONSUMING = new HashMap<>();
+
     public static Currency getConsume(Build build) { return BUILD_CONSUMING.get(build.getType()).get(build.getLvl()); }
     public static Currency getConsumeForLvl(BuildType type, int lvl) { return BUILD_CONSUMING.get(type).get(lvl); }
 
-    private final static Map<UnitType, Currency> UNIT_CONSUMING = new HashMap<>();
     public static Currency getConsume(Unit unit) { return UNIT_CONSUMING.get(unit.getType()); }
-
-    public static Map<BuildType, Map<Integer, Currency>> getBuildConsuming() { return BUILD_CONSUMING; }
-    public static Map<UnitType, Currency> getUnitConsuming() { return UNIT_CONSUMING; }
+    public static Currency getConsume(UnitType type) { return UNIT_CONSUMING.get(type); }
 
     static {
-        // Capital, Shop, Trade -> Override
         BUILD_CONSUMING.put(BuildType.CAPITAL, new HashMap<>(
                 Map.of(
                         1, Currency.of(0, 0, 0, 0, 0, 0),
@@ -69,10 +67,9 @@ public class Consume {
 
         BUILD_CONSUMING.put(BuildType.OIL_RIG, new HashMap<>(
                 Map.of(
-                        1, Currency.of(5, 0, 0, 0, 3, 0),
-                        2, Currency.of(8, 0, 0, 0, 6, 0),
-                        3, Currency.of(13, 0, 0, 0, 10, 0),
-                        4, Currency.of(21, 0, 0, 0, 15, 0)
+                        1, Currency.of(8, 0, 0, 0, 6, 0),
+                        2, Currency.of(13, 0, 0, 0, 10, 0),
+                        3, Currency.of(21, 0, 0, 0, 15, 0)
                 )
         ));
 
@@ -89,8 +86,7 @@ public class Consume {
                 Map.of(
                         1, Currency.of(0, 0, 0, 0, 0, 0),
                         2, Currency.of(0, 0, 0, 0, 0, 0),
-                        3, Currency.of(0, 0, 0, 0, 0, 0),
-                        4, Currency.of(0, 0, 0, 0, 0, 0)
+                        3, Currency.of(0, 0, 0, 0, 0, 0)
                 )
         ));
 

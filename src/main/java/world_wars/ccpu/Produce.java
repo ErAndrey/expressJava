@@ -1,6 +1,6 @@
 package world_wars.ccpu;
 
-import world_wars.Currency;
+import world_wars.general.Currency;
 import world_wars.entity.Build;
 import world_wars.entity.BuildType;
 
@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class Produce {
     private final static Map<BuildType, Map<Integer, Currency>> BUILD_PRODUCING = new HashMap<>();
+
     public static Currency getProduce(Build build) { return BUILD_PRODUCING.get(build.getType()).get(build.getLvl()); }
     public static Currency getProduceForLvl(BuildType type, int lvl) { return BUILD_PRODUCING.get(type).get(lvl); }
 
@@ -60,10 +61,9 @@ public class Produce {
 
         BUILD_PRODUCING.put(BuildType.OIL_RIG, new HashMap<>(
                 Map.of(
-                        1, Currency.of(0, 0, 0, 0, 0, 3),
-                        2, Currency.of(0, 0, 0, 0, 0, 5),
-                        3, Currency.of(0, 0, 0, 0, 0, 8),
-                        4, Currency.of(0, 0, 0, 0, 0, 13)
+                        1, Currency.of(0, 0, 0, 0, 0, 5),
+                        2, Currency.of(0, 0, 0, 0, 0, 8),
+                        3, Currency.of(0, 0, 0, 0, 0, 13)
                 )
         ));
 
@@ -78,9 +78,9 @@ public class Produce {
 
         BUILD_PRODUCING.put(BuildType.TRADE, new HashMap<>(
                 Map.of(
+                        1, Currency.of(0, 0, 0, 0, 0, 0),
                         2, Currency.of(0, 0, 0, 0, 0, 0),
-                        3, Currency.of(0, 0, 0, 0, 0, 0),
-                        4, Currency.of(0, 0, 0, 0, 0, 0)
+                        3, Currency.of(0, 0, 0, 0, 0, 0)
                 )
         ));
 
@@ -95,9 +95,9 @@ public class Produce {
 
         BUILD_PRODUCING.put(BuildType.TECHNIQUE, new HashMap<>(
                 Map.of(
-                        2, Currency.of(4, 0, 0, 0, 0, 0),
-                        3, Currency.of(8, 0, 0, 0, 0, 0),
-                        4, Currency.of(16, 0, 0, 0, 0, 0)
+                        1, Currency.of(4, 0, 0, 0, 0, 0),
+                        2, Currency.of(8, 0, 0, 0, 0, 0),
+                        3, Currency.of(16, 0, 0, 0, 0, 0)
                 )
         ));
 

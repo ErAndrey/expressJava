@@ -1,6 +1,12 @@
-package world_wars;
+package world_wars.general;
 
 public enum Icon {
+    ZERO("0️⃣"),
+    ONE("1️⃣"),
+    TWO("2️⃣"),
+    THREE("3️⃣"),
+    FOUR("4️⃣"),
+    FIVE("5️⃣"),
 
     PURPLE("🟣"),
     ORANGE("🟠"),
@@ -13,16 +19,17 @@ public enum Icon {
     RED("🔴"),
 
     TIME("🕒"), // Время на ход
-    MOVE("👣"), // Номер хода
+    MOVE("👣"), // Номер хода 🏃
     TECH("🎓"), // Уровень столицы
 
     CREATE("➕"),
+    GET_INFO("🔎"),
     UPGRADE("🔧"),
     DESTROY("🧨"),
     END_MOVE("🚫"),
     LEAVE_GAME("⛔"),
 
-    DIPLOMACY("🤝"), // Можно быть 🧡 / 💚 / 💙 / 💚&💙 / 💔
+    DIPLOMACY("🤝"), // 🎌 Можно быть 🧡 / 💚 / 💙 / 💚&💙 / 💔
 
     NOTIFY("🔔"), // Уведомление об изменении статуса отношений
 
@@ -37,7 +44,7 @@ public enum Icon {
      * 2. 🧡 -> 💔 (Развязать войну) / если тот был в 💙 (союзе), то война объявляется всем участникам союза
      */
     NEUTRAL("🧡"),
-    DECLARE_OR_REQUEST_NEUTRAL("📙"),
+    TO_NEUTRAL("📙"),
     /**
      * Дружба - нужна для возможности торговли
      *
@@ -50,7 +57,7 @@ public enum Icon {
      *          2.2.2. Количество участников больше 2 (>2) и его примет большинство, (Голоса ЗА >= Количество участников / 2) , то игрок добавляется в союз
      */
     FRIEND("💚"),
-    FRIEND_REQUEST("📗"),
+    TO_FRIEND("📗"),
     /**
      * Союз - нужен для военной помощи
      *
@@ -67,7 +74,7 @@ public enum Icon {
      * Игрок 2 = 🧡&💙
      */
     UNION("💙"),
-    UNION_REQUEST("📘"),
+    TO_UNION("📘"),
     /**
      * Война
      *
@@ -86,7 +93,8 @@ public enum Icon {
      * В этом случае, отношения с каждым игроком прийдется налаживать отдельно
      */
     WAR("💔"),
-    DECLARE_WAR("📕"),
+    TO_WAR("📕"),
+    DIE("💀"),
 
     GOLD("💰"),
     FOOD("🍒"),
@@ -99,6 +107,8 @@ public enum Icon {
     MOUNTAIN("🌋"),
     MINERAL("🧊"),
     OIL_FIELD("🩸"),
+
+    BUILD("🏘️"),
 
     CAPITAL("🏰"),
     FARM("🌱"),
@@ -117,6 +127,13 @@ public enum Icon {
     TOWER_3("🎆"),
     TOWER_4("📡"),
 
+    DEFENCE("🛡️"),
+
+    UNIT("👥"),
+
+    ATTACK_POWER("🗡️"),
+    ATTACK_RADIUS("🏹"),
+    MOVE_RADIUS("👣"),
     SCOUT("👨‍💼️"),
     SOLDIER("👨‍✈️"),
     SNIPER("💂"),

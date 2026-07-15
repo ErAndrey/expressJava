@@ -1,6 +1,6 @@
 package world_wars.units;
 
-import world_wars.Currency;
+import world_wars.ccpu.Consume;
 import world_wars.entity.Build;
 import world_wars.entity.Unit;
 import world_wars.entity.UnitType;
@@ -14,6 +14,7 @@ public class Scout extends Unit {
         this.power = 1;
         this.moveRadius = 3;
         this.attackRadius = 1;
+        this.consume = Consume.getConsume(this);
     }
 
     @Override

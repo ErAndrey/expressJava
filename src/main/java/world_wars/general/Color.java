@@ -1,4 +1,4 @@
-package world_wars;
+package world_wars.general;
 
 public enum Color {
     PURPLE(Icon.PURPLE),
@@ -13,6 +13,7 @@ public enum Color {
 
     private Icon icon;
     Color(Icon icon) { this.icon = icon; }
+
     @Override
     public String toString() { return this.icon.toString(); }
 }
