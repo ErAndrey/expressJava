@@ -8,25 +8,22 @@ import world_wars.general.Utils;
 
 public class Trade extends Build {
 
-    private static int maxExport(Trade trade, int countFarmingBuild) {
-        return (int) (countFarmingBuild * 2.5) + switch (trade.lvl) {
-            case 1 -> 30;
-            case 2 -> 60;
-            case 3 -> 100;
+    private static int maxExport(Trade trade) {
+        return switch (trade.lvl) {
+            case 1 -> 15;
+            case 2 -> 30;
+            case 3 -> 50;
             default -> throw new IllegalStateException("Unexpected lvl trade value");
         };
     }
-    private static int maxImport(Trade trade, int countFarmingBuild) {
-        return (int) (countFarmingBuild * 1.25) + switch (trade.lvl) {
-            case 1 -> 40;
-            case 2 -> 70;
-            case 3 -> 110;
+    private static int maxImport(Trade trade) {
+        return switch (trade.lvl) {
+            case 1 -> 20;
+            case 2 -> 35;
+            case 3 -> 50;
             default -> throw new IllegalStateException("Unexpected lvl trade value");
         };
     }
-
-    private int countForImport;
-    private int countForExport;
 
     public Trade() {
         super(1);
@@ -34,18 +31,10 @@ public class Trade extends Build {
         this.defence = 0;
         this.consume = Consume.getConsume(this);
         this.produce = Produce.getProduce(this);
-        this.countForImport = maxImport(this, 1);
-        this.countForExport = maxExport(this, 1);
     }
 
-    public int getCountForImport() { return this.countForImport; }
-    public int getCountForExport() { return this.countForExport; }
-    public void deliveryImport(int count) { this.countForImport -= count; }
-    public void deliveryExport(int count) { this.countForExport -= count; }
-    public void resetDelivery(int countFarmingBuild) {
-        this.countForImport = maxImport(this, countFarmingBuild);
-        this.countForExport = maxExport(this, countFarmingBuild);
-    }
+    public int getExportPower() { return maxExport(this); }
+    public int getImportPower() { return maxImport(this); }
 
     @Override
     public void upgrade() {

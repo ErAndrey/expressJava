@@ -24,6 +24,8 @@ public final class State {
     private Currency changeBalance;
     private final Map<Integer, Build> builds;
     private final Map<Integer, Unit> units;
+    private int exportPower;
+    private int importPower;
 
     public State() {
         this.id = counter++;
@@ -38,7 +40,7 @@ public final class State {
         //toDo test
         Trade trade = new Trade();
         this.builds.put(trade.getId(), trade);
-        this.currentBalance = Currency.of(50, 50, 50, 50, 50, 50);
+        this.currentBalance = Currency.of(200, 50, 50, 50, 50, 50);
     }
 
     public int getId() {
@@ -75,29 +77,36 @@ public final class State {
                     entry -> (Shop) entry.getValue()
             ));
     }
-    public boolean isCanBuyFromShop() { return this.builds.values().stream().anyMatch(build -> build instanceof Shop); }
+    public boolean isCanBuy() { return this.builds.values().stream().anyMatch(build -> build instanceof Shop); }
 
-    public boolean isCanTrade() { return this.builds.values().stream().anyMatch(build -> build instanceof Trade); }
-    public Trade getTrade() { return (Trade) this.builds.values().stream().filter(build -> build instanceof Trade).findFirst().get(); }
-    private int getCountFarmingBuilds() {
-        return (int) this.builds.values().stream()
-                .filter(build ->
-                        build instanceof Farm ||
-                        build instanceof Factory ||
-                        build instanceof Sawmill ||
-                        build instanceof Mine ||
-                        build instanceof OilRig
-                )
-                .count();
+    public Map<Integer, Trade> getTrades() {
+        return this.builds.entrySet().stream()
+                .filter(entry -> entry.getValue() instanceof Trade)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> (Trade) entry.getValue()
+                ));
     }
-
-    public boolean isHaveBalanceToSpend(Currency price) {
-        return currentBalance.getGold() >= price.getGold() &&
-                currentBalance.getFood() >= price.getFood() &&
-                currentBalance.getStone() >= price.getStone() &&
-                currentBalance.getTree() >= price.getTree() &&
-                currentBalance.getOre() >= price.getOre() &&
-                currentBalance.getOil() >= price.getOil();
+    public boolean isCanTrade() {
+        return this.capital.getLvl() >= 2;
+    }
+    public boolean isCanExport() {
+        return this.exportPower > 0;
+    }
+    public int getExportPower() {
+        return this.exportPower;
+    }
+    public void deliveryExport(int count) {
+        this.exportPower -= count;
+    }
+    public boolean isCanImport() {
+        return this.importPower > 0;
+    }
+    public int getImportPower() {
+        return this.importPower;
+    }
+    public void deliveryImport(int count) {
+        this.importPower -= count;
     }
 
     public void addBuild(Build build) {
@@ -128,12 +137,39 @@ public final class State {
         this.changeBalance = currency;
     }
 
+    public void startMove() {
+        this.setActualChangeBalance();
+
+        if (!this.getTrades().isEmpty()) {
+            int countFarmingBuild = (int) this.builds.values().stream()
+                    .filter(Build::isFarming)
+                    .count();
+
+            this.exportPower = (int) (countFarmingBuild * 2.5) + this.getTrades().values().stream()
+                    .mapToInt(Trade::getExportPower)
+                    .sum();
+
+            this.importPower = (int) (countFarmingBuild * 1.25) + this.getTrades().values().stream()
+                    .mapToInt(Trade::getImportPower)
+                    .sum();
+        }
+
+        this.getShops().values().forEach(shop -> shop.supplyCurrency(this));
+    }
+
     public void endMove() {
         this.units.values().forEach(unit -> this.currentBalance.withdrawCurrency(unit.getConsume()));
-        this.builds.values().forEach(build -> this.currentBalance.withdrawCurrency(build.getConsume()));
-        this.builds.values().forEach(build -> this.currentBalance.depositCurrency(build.getProduce()));
-        this.getShops().values().forEach(shop -> shop.supplyCurrency(this));
-        this.builds.values().stream().filter(build -> build instanceof Trade).forEach(build -> ((Trade) build).resetDelivery(this.getCountFarmingBuilds()));
+
+        this.builds.values().stream().filter(build -> !build.isFarming()).forEach(build -> this.currentBalance.withdrawCurrency(build.getConsume()));
+
+        this.builds.values().stream().filter(Build::isFarming).forEach(build -> {
+            if (this.currentBalance.isHaveCurrencyToSpendOn(build.getConsume())) {
+                this.currentBalance.withdrawCurrency(build.getConsume());
+                this.currentBalance.depositCurrency(build.getProduce());
+            }
+        });
+
+        Currency.checkMinusAndSetZero(this.currentBalance);
     }
 
     public int getCountCurrencyFarmBuild(CurrencyType farmedCurrency) {

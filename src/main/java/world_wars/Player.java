@@ -2,7 +2,6 @@ package world_wars;
 
 import world_wars.builds.Capital;
 import world_wars.builds.tradings.Shop;
-import world_wars.builds.tradings.Trade;
 import world_wars.ccpu.CreateBuild;
 import world_wars.ccpu.Upgrade;
 import world_wars.diplomacy.DiplomacyManager;
@@ -74,6 +73,9 @@ public class Player implements Comparable<Player> {
         System.out.println("\n➖➖➖➖➖➖➖➖➖➖➖");
         System.out.println(Utils.toYellow("System: ") + "Ход игрока " + this + "!");
         System.out.println("➖➖➖➖➖➖➖➖➖➖➖");
+
+        this.states.values().forEach(State::startMove);
+
         while (true) {
             System.out.println(Utils.toYellow("\nSystem: ") + "Ваши штаты");
             this.states.values().forEach(System.out::println);
@@ -133,7 +135,6 @@ public class Player implements Comparable<Player> {
             System.out.println(Utils.toRed("System: ") + "Такого штата у вас нет");
         }
     }
-
     private Build selectBuild(State state) {
         while (true) {
             int choice = Utils.nextInt("🆔 здания: ");
@@ -141,9 +142,8 @@ public class Player implements Comparable<Player> {
             System.out.println(Utils.toRed("System: ") + "Такого здания у вас нет");
         }
     }
-
     private Shop selectShop(State state) {
-        System.out.println(Utils.toYellow("\nSystem: ") + "Ваши магащины");
+        System.out.println(Utils.toYellow("\nSystem: ") + "Ваши магазины");
         state.getShops().values().forEach(System.out::println);
         System.out.println();
         while (true) {
@@ -181,11 +181,11 @@ public class Player implements Comparable<Player> {
             );
             //4️⃣ Торговля 💒
 
-            if (state.isCanBuyFromShop()) System.out.println("3️⃣ Магазин  🛒");
+            if (state.isCanBuy()) System.out.println("3️⃣ Магазин  🛒");
 
             System.out.println();
 
-            int choice = state.isCanBuyFromShop() ? Utils.whatToDoNext(3) : Utils.whatToDoNext(2);
+            int choice = state.isCanBuy() ? Utils.whatToDoNext(3) : Utils.whatToDoNext(2);
 
             switch (choice) {
                 case 0 -> {
@@ -194,10 +194,10 @@ public class Player implements Comparable<Player> {
                 case 1 -> buildings(state);
                 case 3 -> {
                     Shop selectedShop = selectShop(state);
-                    if (selectedShop.isWork()) {
-                        shop(state, selectedShop);
-                    } else {
+                    if (selectedShop.getCurrencyCountAvailable().isEmpty()) {
                         System.out.println(Utils.toRed("\nSystem: ") + "Товары поступят в магазин к следующему ходу!");
+                    } else {
+                        shop(state, selectedShop);
                     }
                 }
             }
@@ -230,7 +230,6 @@ public class Player implements Comparable<Player> {
             }
         }
     }
-
     private void checkBuildInfo(State state, Build build) {
         while (true) {
             System.out.println(Utils.toYellow("\nSystem: ") + "Выбрано здание - " + build);
@@ -291,7 +290,6 @@ public class Player implements Comparable<Player> {
             }
         }
     }
-
     private void createBuildInState(State state) {
         while (true) {
             System.out.println(Utils.toYellow("System: ") + "Построить здание\n");
@@ -301,9 +299,8 @@ public class Player implements Comparable<Player> {
             List<BuildType> unavailableToCreate = new ArrayList<>();
 
             for (BuildType type : availableForCapitalLvl) {
-                if (state.isCanTrade() && type == BuildType.TRADE) continue;
                 CreateBuild createBuild = CreateBuild.getCreateBuildInfo(type);
-                if (state.isHaveBalanceToSpend(createBuild.price())) {
+                if (state.getCurrentBalance().isHaveCurrencyToSpendOn(createBuild.price())) {
                     availableToCreate.add(type);
                     continue;
                 }
@@ -330,7 +327,6 @@ public class Player implements Comparable<Player> {
             System.out.println(Utils.toGreen("System: ") + "Здание " + type + " построено! Баланс штата: " + ToString.forStateBalance(state));
         }
     }
-
     private void destroyBuildInState(State state) {
         while (true) {
             Build selectedToDestroy = selectBuild(state);
@@ -413,7 +409,6 @@ public class Player implements Comparable<Player> {
             }
         }
     }
-
     private void whatToDoWithPlayer(Player player) {
         if (this.alreadySendRelationRequest.contains(player)) {
             System.out.println(Utils.toRed("\nSystem: ") + "Вы уже взаимодейстовали с " + player + " на этом ходу");
@@ -438,7 +433,6 @@ public class Player implements Comparable<Player> {
         diplomacyManager.sendRequestToPlayer(this, request, player);
         this.alreadySendRelationRequest.add(player);
     }
-
     private void notifications() {
         while (true) {
             System.out.println(Utils.toYellow("\nSystem: ") + "Новости");
@@ -472,7 +466,6 @@ public class Player implements Comparable<Player> {
             }
         }
     }
-
     private void acceptRelationRequest(Notification notification) {
         while (true) {
             System.out.println(Utils.toYellow("\nSystem: ") + "Вы выбрали - " + notification);
@@ -507,17 +500,19 @@ public class Player implements Comparable<Player> {
 
     public void trading() {
         while (true) {
-            Map<Integer, State> statesCanTrade = this.states.entrySet().stream()
-                    .filter(entry -> entry.getValue().isCanTrade() && !entry.getValue().getCurrentBalance().isEmptyCurrency())
+            //toDo по сути лишнее, тк главное для торго
+            Map<Integer, State> tradingStates = states.entrySet().stream()
+                    .filter(entry -> entry.getValue().isCanTrade())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            Map<Integer, State> canImport = statesCanTrade.entrySet().stream()
-                    .filter(entry -> entry.getValue().getTrade().getCountForImport() > 0)
+            Map<Integer, State> exportingStates = states.entrySet().stream()
+                    .filter(entry -> entry.getValue().isCanExport())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-            Map<Integer, State> canExport = statesCanTrade.entrySet().stream()
-                    .filter(entry -> entry.getValue().getTrade().getCountForExport() > 0)
+            Map<Integer, State> importingStates = states.entrySet().stream()
+                    .filter(entry -> entry.getValue().isCanImport())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
 
             System.out.print(Utils.toYellow("\nSystem: "));
             if (warehouseForTrade.isEmptyCurrency()) {
@@ -526,9 +521,9 @@ public class Player implements Comparable<Player> {
                 System.out.println("На складе: " + warehouseForTrade);
             }
 
-            if (statesCanTrade.isEmpty()) {
-                System.out.println("❗ Для того, чтобы иметь возможность торговать, постойте здание для торговли");
-                System.out.println("\n0️⃣ Назад\n1️⃣ Купить\n");
+            if (tradingStates.isEmpty()) {
+                System.out.println("❗ Для того, чтобы иметь возможность торговать, столица должна быть 2ого уровня и наличие тоговых домов");
+                System.out.println("\n0️⃣ Назад\n1️⃣ Сделки\n");
             } else {
                 System.out.println(
                         """
@@ -541,41 +536,51 @@ public class Player implements Comparable<Player> {
                 );
             }
 
-            int choice = statesCanTrade.isEmpty() ? Utils.whatToDoNext(1) : Utils.whatToDoNext(4);
+            int choice = tradingStates.isEmpty() ? Utils.whatToDoNext(1) : Utils.whatToDoNext(4);
 
             switch (choice) {
                 case 0 -> { return; }
                 case 1 -> otherTrades();
-                case 2 -> myTrades(statesCanTrade);
+                case 2 -> myTrades(exportingStates);
                 case 3 -> {
                     if (warehouseForTrade.isEmptyCurrency()) {
                         System.out.println(Utils.toRed("\nSystem: ") + "Вам нечего импортировать, у вас пустой склад");
-                    } else if (canImport.isEmpty()) {
-                        System.out.println(Utils.toRed("\nSystem: ") + "Имопртные мощности востановятся к следующему ходу");
+                    } else if (importingStates.isEmpty()) {
+                        System.out.println(Utils.toRed("\nSystem: ") + "В настоящий момент ваши штаты не могут импортировать");
                     } else {
-                        importTo(selectStateFromForTrading(canImport, "Выберите штат для импорта:"));
+                        importTo(selectStateForImport(importingStates));
                     }
                 }
                 case 4 -> {
-                    if (canExport.isEmpty()) {
-                        System.out.println(Utils.toRed("\nSystem: ") + "Экспортные мощности востановятся к следующему ходу");
+                    if (exportingStates.isEmpty()) {
+                        System.out.println(Utils.toRed("\nSystem: ") + "В настоящий момент ваши штаты не могут экспортировать");
                     } else {
-                        exportFrom(selectStateFromForTrading(canExport, "Выберите штат для экспорта:"));
+                        exportFrom(selectStateForExport(exportingStates));
                     }
                 }
             }
         }
     }
-    private State selectStateFromForTrading(Map<Integer, State> states, String message) {
+
+    private State selectStateForExport(Map<Integer, State> states) {
+        if (states.size() == 1) return states.values().stream().findFirst().get();
         System.out.println();
-        states.values().forEach(state -> {
-            Trade trade = state.getTrade();
-            System.out.println(Icon.CAPITAL + "#" + state.getId() + " : " + Icon.TRADE + "#" + trade.getLvl() + " (⏬ Лимит импорта: " + trade.getCountForImport() + ", ⏫ Лимит экспорта: " + trade.getCountForExport() + ")");
-        });
-        System.out.println("\n" + message);
+        states.values().forEach(state -> System.out.println(Icon.CAPITAL + "#" + state.getId() + " ⏫ Лимит экспорта: " + state.getExportPower()));
+        System.out.println();
         while (true) {
             int choice = Utils.nextInt("🆔 штата: ");
-            if (states.containsKey(choice)) return this.states.get(choice);
+            if (states.containsKey(choice)) return states.get(choice);
+            System.out.println(Utils.toRed("System: ") + "Такого штата нет");
+        }
+    }
+    private State selectStateForImport(Map<Integer, State> states) {
+        if (states.size() == 1) return states.values().stream().findFirst().get();
+        System.out.println();
+        states.values().forEach(state -> System.out.println(Icon.CAPITAL + "#" + state.getId() + " ⏬ Лимит импорта: " + state.getImportPower()));
+        System.out.println();
+        while (true) {
+            int choice = Utils.nextInt("🆔 штата: ");
+            if (states.containsKey(choice)) return states.get(choice);
             System.out.println(Utils.toRed("System: ") + "Такого штата нет");
         }
     }
@@ -685,19 +690,6 @@ public class Player implements Comparable<Player> {
             }
             System.out.println();
 
-            /*
-            boolean canBuyAll = myExpectedCurrencyCount >= (tradingRequest.getCountExpected() * tradingRequest.getCountSelected());
-            int howICanBuy1 = canBuyAll ? tradingRequest.getCountSelected() : Math.floorDiv(myExpectedCurrencyCount, tradingRequest.getCountExpected()); // Доступно для ONE_TO_N
-
-            System.out.println("\n0️⃣ Назад");
-            switch (tradingRequest.getTradingType()) {
-                case BUY -> System.out.println("1️⃣ Продать " + selected + "/" + tradingRequest.getCountExpected() + tradingRequest.getExpectedCurrency() + " (до " + howICanBuy1 + " шт)");
-                case SELL -> System.out.println("1️⃣ Купить " + selected + "/" + tradingRequest.getCountExpected() + tradingRequest.getExpectedCurrency() + " (до " + howICanBuy1 + " шт)");
-                case ALL_TO_ALL -> System.out.println("1️⃣ Обменять " + tradingRequest.getCountSelected() + tradingRequest.getSelectedCurrency() + " на " + tradingRequest.getCountExpected() + tradingRequest.getExpectedCurrency());
-            }
-            System.out.println();
-            */
-
             int choice = Utils.whatToDoNext(1);
 
             switch (choice) {
@@ -714,14 +706,10 @@ public class Player implements Comparable<Player> {
         }
     }
 
-    private void myTrades(Map<Integer, State> statesCanTrade) {
+    private void myTrades(Map<Integer, State> tradingStates) {
         while (true) {
-            Map<Integer, State> canExport = statesCanTrade.entrySet().stream()
-                    .filter(entry -> entry.getValue().getTrade().getCountForExport() > 0)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
             TreeMap<Integer, TradingRequest> myTrades = tradingManager.getMyTradingRequest(this);
-            boolean canCreateTrade = !canExport.isEmpty();
+            boolean canCreateTrade = tradingStates.values().stream().anyMatch(State::isCanExport);
             boolean haveTradingRequest = !myTrades.isEmpty();
 
             System.out.println(Utils.toYellow("\nSystem: ") + "Мои сделки");
@@ -776,7 +764,7 @@ public class Player implements Comparable<Player> {
                 case 0 -> { return; }
                 case 1 -> {
                     if (canCreateTrade) {
-                        createTradingRequest(selectStateFromForTrading(canExport, "Выберите штат для экспорта:"));
+                        createTradingRequest(selectStateForExport(tradingStates));
                     } else {
                         tradingManager.removeTradingRequest(selectTradingRequestById(myTrades));
                     }
@@ -803,13 +791,12 @@ public class Player implements Comparable<Player> {
         switch (tradingType) {
             case BUY -> {
                 selectedCurrency = TradingManager.selectCurrencyTypeForTrade(state, tradingType);
-                expectedCurrency = TradingManager.selectCurrencyTypeForTradeExcludeCurrencyType(selectedCurrency, tradingType);
+                expectedCurrency = TradingManager.selectCurrencyTypeForTradeExcludeCurrencyType(state, selectedCurrency, tradingType);
 
                 countExpected = TradingManager.selectCountExpectedCurrencyForTrade(state, selectedCurrency, countSelected, expectedCurrency, tradingType);
 
-                int maxPrice = Math.min(state.getTrade().getCountForExport(), state.getCurrentBalance().get(expectedCurrency));
+                int maxPrice = Math.min(state.getExportPower(), state.getCurrentBalance().get(expectedCurrency));
                 int canBuy = Math.floorDiv(maxPrice, countExpected);
-                //тут пришла цена
 
                 countSelected = TradingManager.selectCountSelectedCurrencyForBuyTrade(selectedCurrency, canBuy, expectedCurrency, countExpected);
             }
@@ -817,57 +804,21 @@ public class Player implements Comparable<Player> {
                 selectedCurrency = TradingManager.selectCurrencyTypeForTrade(state, tradingType);
                 countSelected = TradingManager.selectCountSelectedCurrencyForSellOrSwapTrade(selectedCurrency, state, tradingType);
 
-                expectedCurrency = TradingManager.selectCurrencyTypeForTradeExcludeCurrencyType(selectedCurrency, tradingType);
+                expectedCurrency = TradingManager.selectCurrencyTypeForTradeExcludeCurrencyType(state, selectedCurrency, tradingType);
                 countExpected = TradingManager.selectCountExpectedCurrencyForTrade(state, selectedCurrency, countSelected, expectedCurrency, tradingType);
             }
         }
 
-        Trade whoCreateTrade = state.getTrade();
-
-        List<RelationType> availableFor = TradingManager.selectAvailableRelationsForTrade(whoCreateTrade);
-
-        /**
-         * Покупка:
-         * 1. selectedCurrency - Что купить 🛢️
-         * 2. expectedCurrency - За что купить [💰🍒🌳🧱💎] + количество -> 50💰
-         * 3. countExpectedCurrency - Цена - Сколько готов отдать 💰 за 🛢️/шт
-         *      Нужно рассчитать диапазон цены, учитывая:
-         *      - state.getCurrentBalance.get(💰) - сколько у тебя 💰
-         *      - countExport - сколько ты его можешь поставить
-         *
-         *      if (countExport >= state.getCurrentBalance.get(💰))
-         *           если countExport - то верхний диапазон цены это state.getCurrentBalance.get(💰)
-         *           если state.getCurrentBalance.get(💰) - то верхний диапазон цены это countExport
-         *
-         *           Пример 1. countExport >= state.getCurrentBalance.get(💰) -> countExport = [1, 30]
-         *                  Вводим 30 -> говорим, что ты можешь купить Math.floorDiv(state.getCurrentBalance.get(💰), 30);
-         *                  Вводим 10 -> говорим, что ты можешь купить Math.floorDiv(state.getCurrentBalance.get(💰), 10);
-         *                  Вводим 7 -> говорим, что ты можешь купить Math.floorDiv(state.getCurrentBalance.get(💰), 7);
-         *
-         *           Пример 2. state.getCurrentBalance.get(💰) > countExport
-         *                  Вводим 30 -> говорим, что ты можешь купить Math.floorDiv(countExport, 30);
-         *                  Вводим 17 -> говорим, что ты можешь купить Math.floorDiv(countExport, 17);
-         *                  Вводим 3 -> говорим, что ты можешь купить Math.floorDiv(countExport, 3);
-         *
-         * 4. countSelectedCurrency - Должно расчитаться
-         */
-
-        /**
-         * Продажа
-         * 1. selectedCurrency - Что 🛢️
-         * 2. countSelectedCurrency - Сколько
-         * 3. expectedCurrency - По чем
-         * 4. countExpectedCurrency
-         */
+        List<RelationType> availableFor = TradingManager.selectAvailableRelationsForTrade(state);
 
         switch (tradingType) {
             case BUY -> {
                 state.getCurrentBalance().withdraw(expectedCurrency, countSelected * countExpected);
-                whoCreateTrade.deliveryExport(countSelected * countExpected);
+                state.deliveryExport(countSelected * countExpected);
             }
             case SELL, SWAP -> {
                 state.getCurrentBalance().withdraw(selectedCurrency, countSelected);
-                whoCreateTrade.deliveryExport(countSelected);
+                state.deliveryExport(countSelected);
             }
         }
 
@@ -876,7 +827,7 @@ public class Player implements Comparable<Player> {
 
     private void importTo(State state) {
         while (true) {
-            System.out.println(Utils.toYellow("\nSystem: ") + "⏬ Импорт в " + Icon.CAPITAL + "#" + state.getId() + " (Лимит: " + state.getTrade().getCountForImport() + ")");
+            System.out.println(Utils.toYellow("\nSystem: ") + "⏬ Импорт в " + Icon.CAPITAL + "#" + state.getId() + " Лимит: " + state.getImportPower());
             System.out.println("\nВыберите ресурс, который хотите импортировать:\n0️⃣ Назад");
 
             List<CurrencyType> availableToImport = CurrencyType.getAvailableCurrencyTypeFromCurrency(warehouseForTrade);
@@ -894,17 +845,17 @@ public class Player implements Comparable<Player> {
                 case 1, 2, 3, 4, 5, 6 -> {
                     CurrencyType selectedCurrencyType = availableToImport.get(choice - 1);
 
-                    int maxToImport = Math.min(warehouseForTrade.get(selectedCurrencyType), state.getTrade().getCountForImport());
+                    int maxToImport = Math.min(warehouseForTrade.get(selectedCurrencyType), state.getImportPower());
                     System.out.println();
                     int toImport = Utils.selectNumber(1, maxToImport, "Количество " + selectedCurrencyType + " для импорта");
 
                     warehouseForTrade.withdraw(selectedCurrencyType, toImport);
                     state.getCurrentBalance().deposit(selectedCurrencyType, toImport);
-                    state.getTrade().deliveryImport(toImport);
+                    state.deliveryImport(toImport);
 
                     System.out.println(Utils.toGreen("\nSystem: ") + "В штат поставлено " + toImport + selectedCurrencyType);
 
-                    if (state.getTrade().getCountForImport() < 1) {
+                    if (state.getImportPower() < 1) {
                         System.out.println(Utils.toRed("\nSystem: ") + "Импортные мощности исчерпаны, дождитесь востановления на следующем ходу");
                         return;
                     }
@@ -918,7 +869,7 @@ public class Player implements Comparable<Player> {
     }
     private void exportFrom(State state) {
         while (true) {
-            System.out.println(Utils.toYellow("\nSystem: ") + "⏫ Экспорт из " + Icon.CAPITAL + "#" + state.getId() + " (Лилит: " + state.getTrade().getCountForExport() + ")");
+            System.out.println(Utils.toYellow("\nSystem: ") + "⏫ Экспорт из " + Icon.CAPITAL + "#" + state.getId() + " Лимит: " + state.getExportPower());
             System.out.println("\nВыберите ресурс, который хотите экспортировать:\n0️⃣ Назад");
 
             List<CurrencyType> availableToExport = CurrencyType.getAvailableCurrencyTypeFromCurrency(state.getCurrentBalance());
@@ -936,17 +887,17 @@ public class Player implements Comparable<Player> {
                 case 1, 2, 3, 4, 5, 6 -> {
                     CurrencyType selectedCurrencyType = availableToExport.get(choice - 1);
 
-                    int maxToExport = Math.min(state.getCurrentBalance().get(selectedCurrencyType), state.getTrade().getCountForExport());
+                    int maxToExport = Math.min(state.getCurrentBalance().get(selectedCurrencyType), state.getExportPower());
                     System.out.println();
                     int toExport = Utils.selectNumber(1, maxToExport, "Количество " + selectedCurrencyType + " для экспорта");
 
                     state.getCurrentBalance().withdraw(selectedCurrencyType, toExport);
-                    state.getTrade().deliveryExport(toExport);
+                    state.deliveryExport(toExport);
                     warehouseForTrade.deposit(selectedCurrencyType, toExport);
 
                     System.out.println(Utils.toGreen("\nSystem: ") + "На склад поставлено " + toExport + selectedCurrencyType);
 
-                    if (state.getTrade().getCountForExport() < 1) {
+                    if (state.getExportPower() < 1) {
                         System.out.println(Utils.toRed("\nSystem: ") + "Экспортные мощности исчерпаны, дождитесь востановления на следующем ходу");
                         return;
                     }

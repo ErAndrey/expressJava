@@ -16,6 +16,23 @@ public final class Currency {
         );
     }
 
+    public static void checkMinusAndSetZero(Currency currency) {
+        if (currency.gold < 0) currency.gold = 0;
+        if (currency.food < 0) currency.food = 0;
+        if (currency.stone < 0) currency.stone = 0;
+        if (currency.tree < 0) currency.tree = 0;
+        if (currency.ore < 0) currency.ore = 0;
+        if (currency.oil < 0) currency.oil = 0;
+    }
+    public boolean isHaveCurrencyToSpendOn(Currency currency) {
+        return this.gold >= currency.gold &&
+                this.food >= currency.food &&
+                this.stone >= currency.stone &&
+                this.tree >= currency.tree &&
+                this.ore >= currency.ore &&
+                this.oil >= currency.oil;
+    }
+
     public static Currency of(int gold, int food, int stone, int tree, int ore, int oil) {
         return new Currency(gold, food, stone, tree, ore, oil);
     }
@@ -103,16 +120,6 @@ public final class Currency {
         this.ore -= currency.ore;
         this.oil -= currency.oil;
         //this.checkMinus();
-    }
-
-    //toDo ресетит changeBalance
-    private void checkMinus() {
-        if (this.gold < 0) this.gold = 0;
-        if (this.food < 0) this.food = 0;
-        if (this.stone < 0) this.stone = 0;
-        if (this.tree < 0) this.tree = 0;
-        if (this.ore < 0) this.ore = 0;
-        if (this.oil < 0) this.oil = 0;
     }
 
     private String toStringSkipEmptyCurrency() {

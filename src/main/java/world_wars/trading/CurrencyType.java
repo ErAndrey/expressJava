@@ -11,7 +11,7 @@ import java.util.Map;
 
 public enum CurrencyType {
 
-    GOLD(Icon.GOLD), //На подом для trading
+    GOLD(Icon.GOLD),
     FOOD(Icon.FOOD),
     STONE(Icon.STONE),
     TREE(Icon.TREE),

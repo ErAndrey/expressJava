@@ -26,10 +26,8 @@ public record Upgrade(int toLvl, int requiredCapitalLvl, Currency price, Currenc
     }
 
     public static boolean haveCurrencyForUpgrade(State state, Build build) {
-        return state.isHaveBalanceToSpend(getUpgradeInfo(build).price);
+        return state.getCurrentBalance().isHaveCurrencyToSpendOn(getUpgradeInfo(build).price);
     }
-
-
 
     public static void upgradeBuild(State state, Build build) {
         state.getCurrentBalance().withdrawCurrency(getUpgradeInfo(build).price);

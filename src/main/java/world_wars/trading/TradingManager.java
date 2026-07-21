@@ -2,7 +2,6 @@ package world_wars.trading;
 
 import world_wars.Player;
 import world_wars.State;
-import world_wars.builds.tradings.Trade;
 import world_wars.diplomacy.RelationType;
 import world_wars.general.Utils;
 
@@ -15,24 +14,24 @@ import java.util.stream.Collectors;
 public class TradingManager {
     private TreeMap<Integer, TradingRequest> tradingRequests;
 
-    public static Map<Integer, List<RelationType>> getAvailableRelationTypesForCreateTrade(Trade trade) {
-        return switch (trade.getLvl()) {
-            case 1 -> Map.of(
+    public static Map<Integer, List<RelationType>> getAvailableRelationTypesForCreateTrade(State state) {
+        return switch (state.getCapital().getLvl()) {
+            case 2 -> Map.of(
                     1, List.of(RelationType.FRIEND),
                     2, List.of(RelationType.WAR, RelationType.NEUTRAL, RelationType.FRIEND, RelationType.UNION)
             );
-            case 2 -> Map.of(
+            case 3 -> Map.of(
                     1, List.of(RelationType.FRIEND),
                     2, List.of(RelationType.UNION),
                     3, List.of(RelationType.WAR, RelationType.NEUTRAL, RelationType.FRIEND, RelationType.UNION)
             );
-            case 3 -> Map.of(
+            case 4 -> Map.of(
                     1, List.of(RelationType.FRIEND),
                     2, List.of(RelationType.UNION),
                     3, List.of(RelationType.FRIEND, RelationType.UNION),
                     4, List.of(RelationType.WAR, RelationType.NEUTRAL, RelationType.FRIEND, RelationType.UNION)
             );
-            default -> throw new IllegalStateException("Unexpected trade lvl value");
+            default -> throw new IllegalStateException("Unexpected state lvl value");
         };
     }
     public static TradingType selectTradingTypeForTrade() {
@@ -91,7 +90,7 @@ public class TradingManager {
         System.out.println(Utils.toYellow("\nSystem: ") + "Укажите, какое количество " + selectedCurrency + " вы хотите " + tradingTypeText);
 
         return switch (tradingType) {
-            case SELL, SWAP -> Utils.selectNumber(1, Math.min(state.getCurrentBalance().get(selectedCurrency), state.getTrade().getCountForExport()), "Количество");
+            case SELL, SWAP -> Utils.selectNumber(1, Math.min(state.getCurrentBalance().get(selectedCurrency), state.getExportPower()), "Количество");
             default -> throw new IllegalStateException();
         };
     }
@@ -100,19 +99,31 @@ public class TradingManager {
 
         return Utils.selectNumber(1, canBuy, "Количество");
     }
-    public static CurrencyType selectCurrencyTypeForTradeExcludeCurrencyType(CurrencyType exclude, TradingType tradingType) {
+    public static CurrencyType selectCurrencyTypeForTradeExcludeCurrencyType(State state, CurrencyType exclude, TradingType tradingType) {
         String tradingTypeText = switch (tradingType) {
             case BUY -> " отдать при покупке ";
-            case SELL -> " получить при продаже ";case SWAP -> " получить при обмене ";
+            case SELL -> " получить при продаже ";
+            case SWAP -> " получить при обмене ";
         };
 
         System.out.println(Utils.toYellow("\nSystem: ") + "Выберите, какой ресурс вы хотите" + tradingTypeText + exclude);
 
-        List<CurrencyType> available = new ArrayList<>(List.of(CurrencyType.values()));
+        List<CurrencyType> available = switch (tradingType) {
+            case BUY -> CurrencyType.getAvailableCurrencyTypeFromCurrency(state.getCurrentBalance());
+            case SELL, SWAP -> new ArrayList<>(List.of(CurrencyType.values()));
+        };
         available.remove(exclude);
 
         int i = 1;
-        for (CurrencyType type : available) System.out.println(Utils.getNumberOfAction(i++) + " " + type);
+        switch (tradingType) {
+            case BUY -> {
+                for (CurrencyType type : available) System.out.println(Utils.getNumberOfAction(i++) + " " + state.getCurrentBalance().get(type) + type);
+            }
+            case SELL, SWAP -> {
+                for (CurrencyType type : available) System.out.println(Utils.getNumberOfAction(i++) + " " + type);
+            }
+
+        }
         System.out.println();
 
         while (true) {
@@ -130,7 +141,7 @@ public class TradingManager {
         System.out.println(tradingTypeText);
         return switch (tradingType) {
             case BUY -> {
-                int maxPrice = Math.min(state.getTrade().getCountForExport(), state.getCurrentBalance().get(expected));
+                int maxPrice = Math.min(state.getExportPower(), state.getCurrentBalance().get(expected));
 
                 int priceForSelected;
                 while (true) {
@@ -139,7 +150,7 @@ public class TradingManager {
                     int canBuy = Math.floorDiv(maxPrice, priceForSelected);
 
                     System.out.println("\nПри цене " + priceForSelected + expected + "/шт вы сможете создать запрос на покупку " + canBuy + selected);
-                    System.out.println("\n0️⃣ Изменить цену\n1️⃣ Продолжить\n");
+                    System.out.println("\n0️⃣ Изменить цену\n1️⃣ Указать количество\n");
 
                     if (Utils.whatToDoNext(1) == 1) break;
                 }
@@ -150,9 +161,9 @@ public class TradingManager {
             case SWAP -> Utils.nextIntPositive("Количество: ");
         };
     }
-    public static List<RelationType> selectAvailableRelationsForTrade(Trade trade) {
+    public static List<RelationType> selectAvailableRelationsForTrade(State state) {
         System.out.println(Utils.toYellow("\nSystem: ") + "Выберите, для кого будет доступна сделка");
-        TreeMap<Integer, List<RelationType>> available = new TreeMap<>(getAvailableRelationTypesForCreateTrade(trade));
+        TreeMap<Integer, List<RelationType>> available = new TreeMap<>(getAvailableRelationTypesForCreateTrade(state));
         available.entrySet().forEach(entry -> {
             StringBuilder sb = new StringBuilder(" [");
             for (RelationType type : entry.getValue()) sb.append(type.getIcon());
@@ -198,7 +209,7 @@ public class TradingManager {
     public void removeTradingRequest(TradingRequest tradingRequest) {
         this.tradingRequests.remove(tradingRequest.getId());
         switch (tradingRequest.getTradingType()) {
-            case BUY -> tradingRequest.getFromPlayer().getWarehouseForTrade().deposit(tradingRequest.getExpectedCurrency(), tradingRequest.getCountExpected());
+            case BUY -> tradingRequest.getFromPlayer().getWarehouseForTrade().deposit(tradingRequest.getExpectedCurrency(), tradingRequest.getCountExpected() * tradingRequest.getCountSelected());
             case SELL, SWAP -> tradingRequest.getFromPlayer().getWarehouseForTrade().deposit(tradingRequest.getSelectedCurrency(), tradingRequest.getCountSelected());
         }
     }

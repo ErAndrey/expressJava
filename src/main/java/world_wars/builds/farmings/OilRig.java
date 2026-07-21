@@ -11,6 +11,7 @@ public class OilRig extends Build implements Upgradable {
         super(1);
         this.type = BuildType.OIL_RIG;
         this.defence = 0;
+        this.isFarming = true;
         this.consume = Consume.getConsume(this);
         this.produce = Produce.getProduce(this);
     }

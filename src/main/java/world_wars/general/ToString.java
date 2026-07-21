@@ -87,7 +87,10 @@ public class ToString {
         sb.append(Icon.TECH).append("#").append(state.getCapital().getLvl()).append(" ");
         sb.append(Icon.BUILD).append("x").append(state.getBuildsSize()).append(" ");
         sb.append(Icon.UNIT).append("x").append(state.getUnitsSize());
-
+        if (state.isCanTrade()) {
+            sb.append(" ⏫x").append(state.getExportPower());
+            sb.append(" ⏬x").append(state.getImportPower());
+        }
         return sb.toString();
     }
 

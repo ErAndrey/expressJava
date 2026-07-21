@@ -11,6 +11,7 @@ public class Factory extends Build implements Upgradable {
         super();
         this.type = BuildType.FACTORY;
         this.defence = 0;
+        this.isFarming = true;
         this.consume = Consume.getConsume(this);
         this.produce = Produce.getProduce(this);
     }

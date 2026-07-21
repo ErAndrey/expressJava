@@ -65,7 +65,6 @@ public class Shop extends Build {
 
     private Map<CurrencyType, Integer> currencyPriceInGold;
     private Map<CurrencyType, Integer> currencyCountAvailable;
-    private boolean isWork;
 
     public Shop() {
         super();
@@ -75,10 +74,8 @@ public class Shop extends Build {
         this.produce = Produce.getProduce(this);
         this.currencyPriceInGold = new HashMap<>();
         this.currencyCountAvailable = new HashMap<>();
-        this.isWork = false;
     }
 
-    public boolean isWork() { return this.isWork; }
     public void supplyCurrency(State state) {
         this.currencyCountAvailable.clear();
         int alreadySupply = 0;
@@ -93,7 +90,6 @@ public class Shop extends Build {
             }
         }
         this.currencyPriceInGold = currencyPriceInGold(this);
-        this.isWork = true;
     }
 
     public Map<CurrencyType, Integer> getCurrencyPriceInGold() { return this.currencyPriceInGold; }
